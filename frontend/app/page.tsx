@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Search, Activity, Zap, ShieldCheck, ArrowUpRight, ArrowDownRight, Building2, BarChart3, Globe, ServerOff, RefreshCcw, AlertTriangle, Target, Cpu, Layers, LineChart } from "lucide-react";
+import { Search, Activity, Zap, ShieldCheck, ArrowUpRight, ArrowDownRight, Building2, BarChart3, Globe, ServerOff, RefreshCcw, AlertTriangle, Target, Cpu, Layers, Terminal, ChevronRight, LineChart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ const STOCK_DIRECTORY = [
   { symbol: "SUZLON.NS", name: "Suzlon Energy" }
 ];
 
-export default function QuantEngineDashboard() {
+export default function NexusTerminal() {
   const { globalTicker: ticker, setGlobalTicker: setTicker } = useTicker();
   const [searchInput, setSearchInput] = useState(ticker);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -171,230 +171,293 @@ export default function QuantEngineDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans selection:bg-emerald-500/30 pb-20 flex flex-col">
+    <div className="min-h-screen bg-[#020202] text-zinc-100 p-6 md:p-10 font-sans selection:bg-emerald-500/30 pb-20 flex flex-col w-full max-w-[1800px] mx-auto relative overflow-hidden">
       
-      {/* --- NEW STYLISH PREMIUM HEADER --- */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6 shrink-0 relative z-50">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-            <Zap size={24} className="text-emerald-400 fill-emerald-400/50" />
+      {/* --- PRO-MAX BACKGROUND: TACTICAL GRID --- */}
+      <div className="fixed inset-0 z-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-b from-emerald-500/[0.02] to-transparent pointer-events-none z-0" />
+
+      {/* --- STARK INSTITUTIONAL HEADER --- */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 border-b border-zinc-800/60 pb-6 shrink-0 relative z-50">
+        
+        {/* Brand */}
+        <div className="flex items-center gap-4 select-none group">
+          <div className="h-12 w-12 bg-zinc-950 border border-zinc-800 text-white flex items-center justify-center rounded-sm shadow-[0_0_15px_rgba(0,0,0,0.5)] group-hover:border-emerald-500/50 transition-colors duration-500 relative overflow-hidden">
+            <div className="absolute inset-0 bg-emerald-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+            <Terminal size={24} strokeWidth={2} className="relative z-10 text-emerald-50" />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-2xl md:text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 drop-shadow-sm">
-              QUANT<span className="text-white">ENGINE</span>
+            <h1 className="text-3xl font-black tracking-[0.15em] text-white uppercase leading-none flex items-center gap-1">
+              NEXUS <span className="w-2 h-6 bg-emerald-400 animate-pulse block"></span>
             </h1>
-            <p className="text-[10px] md:text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase mt-0.5">
-              Live Market Intelligence
-            </p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <p className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase">
+                System Online // Telemetry Active
+              </p>
+            </div>
           </div>
         </div>
         
-        {/* Search Bar */}
-        <div className="flex flex-col w-full md:w-2/5 gap-2" ref={searchRef}>
-          <div className="flex w-full gap-3 relative">
-            <div className="relative w-full group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 h-5 w-5 transition-colors group-focus-within:text-emerald-400 z-10" />
-              <Input 
-                className={`bg-zinc-900 text-zinc-100 pl-12 pr-16 h-12 text-lg rounded-xl transition-all shadow-inner relative z-10 ${searchError ? 'border-red-500/50 focus-visible:ring-red-500/50' : 'border-zinc-800 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/30'}`} 
-                placeholder="Search company or ticker..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onFocus={() => setShowSuggestions(true)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-                autoComplete="off"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 text-xs text-zinc-500 font-medium bg-zinc-800/80 px-2 py-1 rounded-md z-10">
-                <span>↵</span> Enter
-              </div>
-
-              {/* AUTOCORRECT SUGGESTION DROPDOWN */}
-              {showSuggestions && filteredSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                  {filteredSuggestions.map((stock) => (
-                    <div 
-                      key={stock.symbol}
-                      onClick={() => handleSuggestionClick(stock.symbol)}
-                      className="flex items-center justify-between px-4 py-3 hover:bg-zinc-800/80 cursor-pointer transition-colors border-b border-white/5 last:border-0"
-                    >
-                      <span className="font-medium text-zinc-200">{stock.name}</span>
-                      <span className="text-xs font-bold tracking-widest text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md">{stock.symbol}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+        {/* Command Line Search Bar */}
+        <div className="w-full lg:w-[500px]" ref={searchRef}>
+          {/* FIX: Removed overflow-hidden from this wrapper so the dropdown can escape */}
+          <div className="flex w-full relative bg-[#050505] border border-zinc-800 rounded-sm focus-within:border-emerald-500/50 focus-within:shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all duration-300 group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-zinc-800 group-focus-within:bg-emerald-500 transition-colors rounded-l-sm" />
             
-            <Button 
-              onClick={() => handleAnalyze()}
-              disabled={loading}
-              className={`font-bold h-12 px-6 rounded-xl transition-all z-10 ${searchError ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-emerald-500 hover:bg-emerald-600 text-zinc-950 shadow-[0_0_15px_rgba(16,185,129,0.3)]'}`}
-            >
-              {loading ? "..." : "Analyze"}
-            </Button>
+            <div className="flex items-center pl-5 pr-2 pointer-events-none">
+              <span className="text-emerald-500/70 font-mono font-bold text-sm">{">"}</span>
+            </div>
+            <Input 
+              className="bg-transparent border-none text-white h-12 text-sm font-mono placeholder:text-zinc-600 focus-visible:ring-0 rounded-none w-full tracking-wider" 
+              placeholder="INITIALIZE TICKER SEARCH..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
+              autoComplete="off"
+            />
+            
+            <div className="flex items-center pr-2">
+              <Button 
+                onClick={() => handleAnalyze()}
+                disabled={loading}
+                variant="ghost"
+                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all ${searchError ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_15px_rgba(255,255,255,0.1)]'}`}
+              >
+                {loading ? "..." : "EXECUTE"}
+              </Button>
+            </div>
+
+            {/* DIRECTORY DROPDOWN */}
+            {showSuggestions && filteredSuggestions.length > 0 && (
+              <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-[#050505] border border-zinc-800 rounded-sm shadow-2xl overflow-hidden z-50">
+                {filteredSuggestions.map((stock) => (
+                  <div 
+                    key={stock.symbol}
+                    onClick={() => handleSuggestionClick(stock.symbol)}
+                    className="flex items-center justify-between px-4 py-3 hover:bg-zinc-900 cursor-pointer transition-colors border-b border-zinc-900 last:border-0 group/item"
+                  >
+                    <div className="flex items-center gap-3">
+                      <ChevronRight size={14} className="text-zinc-700 group-hover/item:text-emerald-500 transition-colors" />
+                      <span className="font-bold text-sm text-zinc-300 group-hover/item:text-white transition-colors">{stock.name}</span>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-zinc-500 bg-zinc-900 px-2 py-1 rounded-sm border border-zinc-800">{stock.symbol}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* --- REFINED PREMIUM ERROR TERMINAL --- */}
+      {/* --- REDESIGNED PROFESSIONAL ERROR STATE --- */}
       {searchError ? (
-        <div className="flex-1 flex items-center justify-center animate-in fade-in zoom-in-95 duration-300 relative z-10">
-          <Card className="max-w-2xl w-full bg-[#120505]/90 border-red-500/30 shadow-[0_0_60px_rgba(239,68,68,0.15)] relative overflow-hidden backdrop-blur-2xl">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-80" />
-            <CardHeader className="text-center pb-2 pt-10">
-              <div className="mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-                <ServerOff className="h-8 w-8 text-red-500" />
-              </div>
-              <CardTitle className="text-2xl font-bold tracking-widest text-red-100">ASSET UNRESOLVED</CardTitle>
-            </CardHeader>
+        <div className="flex-1 flex items-center justify-center animate-in fade-in duration-300 relative z-10 w-full">
+          <Card className="max-w-2xl w-full bg-[#0a0000] border border-red-900/50 rounded-sm shadow-2xl relative overflow-hidden">
+            {/* Warning Tape Effect */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-[repeating-linear-gradient(45deg,#ef4444,#ef4444_10px,transparent_10px,transparent_20px)] opacity-50" />
             
-            <CardContent className="space-y-6 px-8 pb-8">
-              <p className="text-red-200/80 text-center leading-relaxed text-sm">
-                The requested timeline for <strong className="text-red-400">"{failedTicker}"</strong> could not be finalized. This occurs if market connections are temporarily restricted or the identifier requires additional parameters.
-              </p>
-              
-              {/* CLEAN GUIDELINE BLOCK */}
-              <div className="bg-red-950/30 p-5 rounded-xl border border-red-500/20 space-y-2">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
+            <CardContent className="p-8 md:p-12">
+              <div className="flex items-start gap-6">
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-sm shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+                  <ServerOff className="h-8 w-8 text-red-500" />
+                </div>
+                <div className="flex-1 space-y-4">
                   <div>
-                    <h4 className="text-red-200 text-xs font-bold tracking-wider mb-2">SEARCH GUIDELINES</h4>
-                    <p className="text-red-300/70 text-sm leading-relaxed">
-                      Try writing the full, actual name of the company, or ensure you are using the correct official ticker symbol. If you are searching for regional equities, verify that the appropriate exchange suffix is included.
-                    </p>
+                    <h3 className="text-red-500 font-mono font-bold tracking-widest text-sm uppercase mb-1">ERR_PIPELINE_REFUSED</h3>
+                    <h2 className="text-3xl font-black text-white tracking-wide uppercase">Data Blocked</h2>
+                  </div>
+                  
+                  <p className="text-zinc-400 text-sm leading-relaxed border-l-2 border-red-900 pl-4 py-1 font-mono">
+                    The requested sequence for <strong className="text-red-400">"{failedTicker}"</strong> could not be validated. The upstream market connection is temporarily restricted or the identifier syntax is invalid.
+                  </p>
+                  
+                  <div className="bg-[#050000] border border-red-900/30 p-4 rounded-sm mt-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-4 w-4 text-red-500/70 mt-0.5" />
+                      <div>
+                        <h4 className="text-zinc-200 text-xs font-bold tracking-widest mb-1 uppercase">Syntax Guidelines</h4>
+                        <p className="text-zinc-500 text-xs leading-relaxed font-mono">
+                          Input the exact corporate entity name or official exchange ticker. Regional equities must include their exchange suffix (e.g., <span className="text-zinc-300">.NS</span> for National Stock Exchange).
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={() => setSearchError("")} 
+                      className="bg-white hover:bg-zinc-200 text-black rounded-sm h-10 px-8 text-xs font-bold tracking-widest uppercase transition-colors"
+                    >
+                      Acknowledge
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleAnalyze(failedTicker)} 
+                      className="bg-transparent border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-sm h-10 px-6 text-xs font-bold tracking-widest uppercase transition-colors"
+                    >
+                      <RefreshCcw className="h-3 w-3 mr-2" /> Retry Ping
+                    </Button>
                   </div>
                 </div>
-              </div>
-
-              {/* ACTION BUTTONS (I Understand & Retry) */}
-              <div className="pt-6 border-t border-red-500/10 flex flex-col sm:flex-row items-center justify-end gap-3">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleAnalyze(failedTicker)} 
-                  className="w-full sm:w-auto bg-[#0a0202] border-red-500/20 text-red-300 hover:text-red-200 hover:bg-red-500/10 h-11 text-xs transition-colors"
-                >
-                  <RefreshCcw className="h-3.5 w-3.5 mr-2" /> Retry Connection
-                </Button>
-                <Button 
-                  onClick={() => setSearchError("")} 
-                  className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white h-11 text-sm font-bold px-8 shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all"
-                >
-                  I Understand
-                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
       ) : (
-        /* --- MAIN DASHBOARD (Only visible when no error) --- */
-        <div className="max-w-7xl mx-auto space-y-6 w-full animate-in fade-in duration-500 relative z-10">
+        /* --- MAIN DASHBOARD BRUTALIST GRID --- */
+        <div className="space-y-6 w-full animate-in fade-in duration-700 relative z-10">
           
-          {/* Top Hero Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-zinc-900/50 border-white/5 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="text-zinc-400 text-sm tracking-widest uppercase">{ticker} PERFORMANCE MATRIX</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <h2 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-4">
-                  {sym}{data.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h2>
-                <div className="flex items-center gap-3">
-                  <span className="text-zinc-400 font-medium">Target: {sym}{data.ai_target.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-bold ${isBullish ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                    {isBullish ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
-                    {Math.abs(diff).toFixed(2)} ({Math.abs(pctChange).toFixed(2)}%)
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* PRIMARY DATA CARD */}
+            <Card className="lg:col-span-8 bg-[#09090b]/80 backdrop-blur-xl border border-zinc-800/80 rounded-sm shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              
+              <CardHeader className="pb-4 border-b border-zinc-800/50 bg-[#050505]/50">
+                <CardTitle className="text-zinc-500 text-[10px] font-mono font-bold tracking-[0.2em] uppercase flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]"></span>
+                    {ticker} // LIVE QUOTE
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-zinc-900/50 border-white/5 backdrop-blur-xl flex flex-col justify-center py-6 px-6">
-              <div className="flex items-center gap-6 mb-6 pb-6 border-b border-white/5">
-                <div className="h-16 w-16 rounded-xl bg-zinc-800 flex items-center justify-center overflow-hidden border border-white/10 shadow-lg shrink-0">
-                  {!imgError && activeLogoUrl ? (
-                    <img src={activeLogoUrl} alt="Logo" className="h-full w-full object-contain p-2 bg-white" onError={() => setImgError(true)} />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center bg-zinc-800 text-emerald-400 text-2xl font-bold uppercase tracking-widest">
-                      {data.company_name.charAt(0)}
+                  <span className="text-zinc-700">T-0 SERVER SYNC</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-8 pb-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                  <div>
+                    <h2 className="text-6xl md:text-8xl font-mono font-black tracking-tighter text-white mb-2 drop-shadow-lg">
+                      <span className="text-zinc-600 font-sans text-4xl md:text-6xl mr-2 font-normal">{sym}</span>
+                      {data.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </h2>
+                  </div>
+                  
+                  <div className="flex flex-col items-start md:items-end gap-3">
+                    <div className="bg-[#050505] border border-zinc-800 px-4 py-2 rounded-sm flex items-center gap-3 w-full md:w-auto">
+                      <span className="text-zinc-500 font-mono text-[10px] uppercase tracking-widest">AI Target</span>
+                      <span className="text-white font-mono font-bold text-lg">{sym}{data.ai_target.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
-                  )}
-                </div>
-                <div className="overflow-hidden">
-                  <h3 className="text-xl md:text-2xl font-bold text-white tracking-wide truncate">{data.company_name}</h3>
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mt-1 truncate">
-                    <Globe className="h-4 w-4 shrink-0" />
-                    {activeDomain ? activeDomain : "Domain identifier protected"}
+                    
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-sm text-sm font-bold border w-full md:w-auto ${isBullish ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]'}`}>
+                      {isBullish ? <ArrowUpRight size={18} strokeWidth={2.5} /> : <ArrowDownRight size={18} strokeWidth={2.5} />}
+                      <span className="font-mono text-base tracking-wider">{Math.abs(diff).toFixed(2)} ({Math.abs(pctChange).toFixed(2)}%)</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="flex items-center gap-1.5 text-zinc-500 text-xs font-bold tracking-widest mb-1">
-                    <Building2 className="h-3.5 w-3.5" /> SECTOR STRUCTURE
-                  </div>
-                  <div className="text-zinc-200 font-medium truncate">{data.sector}</div>
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5 text-zinc-500 text-xs font-bold tracking-widest mb-1">
-                    <BarChart3 className="h-3.5 w-3.5" /> MARKET CAPITALIZATION
-                  </div>
-                  <div className="text-zinc-200 font-medium truncate">{data.market_cap}</div>
-                </div>
-              </div>
+              </CardContent>
             </Card>
+
+            {/* IDENTITY CARD */}
+            <Card className="lg:col-span-4 bg-[#09090b]/80 backdrop-blur-xl border border-zinc-800/80 rounded-sm shadow-2xl flex flex-col relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-emerald-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              
+              <CardHeader className="pb-4 border-b border-zinc-800/50 bg-[#050505]/50">
+                <CardTitle className="text-zinc-500 text-[10px] font-mono font-bold tracking-[0.2em] uppercase">
+                  CORPORATE ENTITY MAP
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 flex-1 flex flex-col justify-between">
+                <div className="flex items-center gap-5 mb-8">
+                  <div className="h-14 w-14 bg-white rounded-sm flex items-center justify-center overflow-hidden p-2 shrink-0 shadow-lg">
+                    {!imgError && activeLogoUrl ? (
+                      <img src={activeLogoUrl} alt="Logo" className="h-full w-full object-contain" onError={() => setImgError(true)} />
+                    ) : (
+                      <div className="text-black text-2xl font-black uppercase">
+                        {data.company_name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="overflow-hidden">
+                    <h3 className="text-lg font-black text-white tracking-wider uppercase truncate">{data.company_name}</h3>
+                    <div className="flex items-center gap-1.5 text-emerald-400/80 font-mono text-xs mt-1 truncate bg-emerald-500/10 w-fit px-2 py-0.5 rounded-sm border border-emerald-500/20">
+                      <Globe className="h-3 w-3 shrink-0" />
+                      {activeDomain ? activeDomain : "N/A"}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-5 pt-5 border-t border-zinc-800/50">
+                  <div className="flex justify-between items-center">
+                    <span className="text-zinc-500 text-[10px] font-bold tracking-[0.2em] uppercase">Sector</span>
+                    <span className="text-zinc-200 text-xs font-bold uppercase tracking-wider">{data.sector}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-zinc-500 text-[10px] font-bold tracking-[0.2em] uppercase">Mkt Cap</span>
+                    <span className="text-zinc-200 text-sm font-mono font-bold bg-[#050505] px-2 py-1 rounded-sm border border-zinc-800">{data.market_cap}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
           </div>
 
-          {/* KPI Row */}
+          {/* SECONDARY ROW */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-zinc-900/50 border-white/5">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xs font-bold tracking-widest text-zinc-400">RECORDED MARKET VALUE</CardTitle>
-                <Activity className="h-4 w-4 text-cyan-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-white">{sym}{data.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-zinc-800/80 rounded-sm shadow-xl group hover:border-zinc-700 transition-colors">
+              <CardContent className="p-6 flex justify-between items-center">
+                <div>
+                  <p className="text-zinc-500 text-[10px] font-mono font-bold tracking-[0.2em] uppercase mb-2">Live Value</p>
+                  <p className="text-2xl font-mono font-black text-white">{sym}{data.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+                <div className="h-10 w-10 bg-[#050505] border border-zinc-800 rounded-sm flex items-center justify-center">
+                  <Activity className="h-5 w-5 text-emerald-500" />
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900/50 border-white/5">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xs font-bold tracking-widest text-zinc-400">PREDICTIVE TARGET TRAJECTORY</CardTitle>
-                <Zap className="h-4 w-4 text-emerald-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-white">{sym}{data.ai_target.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-zinc-800/80 rounded-sm shadow-xl group hover:border-zinc-700 transition-colors">
+              <CardContent className="p-6 flex justify-between items-center">
+                <div>
+                  <p className="text-zinc-500 text-[10px] font-mono font-bold tracking-[0.2em] uppercase mb-2">Neural Target</p>
+                  <p className="text-2xl font-mono font-black text-white">{sym}{data.ai_target.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+                <div className="h-10 w-10 bg-[#050505] border border-zinc-800 rounded-sm flex items-center justify-center">
+                  <Target className="h-5 w-5 text-emerald-500" />
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900/50 border-white/5">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xs font-bold tracking-widest text-zinc-400">STRATEGY LAYER STATUS</CardTitle>
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg font-bold text-emerald-400">OPTIMIZED / ACTIVE</div>
+            <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-zinc-800/80 rounded-sm shadow-xl group hover:border-zinc-700 transition-colors">
+              <CardContent className="p-6 flex justify-between items-center">
+                <div>
+                  <p className="text-zinc-500 text-[10px] font-mono font-bold tracking-[0.2em] uppercase mb-2">System Status</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                    <p className="text-sm font-black tracking-widest text-white uppercase">Secured</p>
+                  </div>
+                </div>
+                <div className="h-10 w-10 bg-emerald-500/10 border border-emerald-500/20 rounded-sm flex items-center justify-center">
+                  <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Chart */}
-          <Card className="bg-zinc-900/50 border-white/5 pt-6">
-            <CardHeader>
-              <CardTitle className="text-sm font-bold tracking-widest text-zinc-400">TREND PROJECTION LINE</CardTitle>
+          {/* CHART AREA */}
+          <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-zinc-800/80 rounded-sm shadow-2xl relative overflow-hidden">
+            <CardHeader className="pb-4 border-b border-zinc-800/50 bg-[#050505]/50">
+              <CardTitle className="text-zinc-500 text-[10px] font-mono font-bold tracking-[0.2em] uppercase flex justify-between">
+                <span className="flex items-center gap-2"><LineChart size={14} className="text-emerald-500"/> INTRADAY SIMULATION // VECTOR MAPPING</span>
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="h-64 w-full">
+            <CardContent className="pt-8">
+              <div className="h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={mockChartData}>
+                  <AreaChart data={mockChartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.2}/>
+                        <stop offset="100%" stopColor="#10b981" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide />
-                    <XAxis dataKey="time" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#10b981' }} />
+                    <XAxis dataKey="time" stroke="#52525b" fontSize={10} fontFamily="monospace" tickLine={false} axisLine={false} dy={10} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#050505', borderColor: '#27272a', borderRadius: '4px', color: '#fff', padding: '12px', boxShadow: '0 0 20px rgba(0,0,0,0.5)' }} 
+                      itemStyle={{ color: '#10b981', fontWeight: 'bold', fontFamily: 'monospace' }} 
+                      labelStyle={{ color: '#71717a', fontSize: '10px', marginBottom: '4px', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                    />
                     <Area type="monotone" dataKey="price" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -402,71 +465,47 @@ export default function QuantEngineDashboard() {
             </CardContent>
           </Card>
 
-          {/* --- MODERN STYLISH FEATURES BLOCK --- */}
-          <div className="pt-8">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold tracking-wider text-white">Engine Diagnostics</h2>
-                <p className="text-zinc-500 text-sm mt-1">Core metrics and predictive layers explained.</p>
-              </div>
-            </div>
+          {/* --- TELEMETRY / FEATURES ROW --- */}
+          <div className="pt-6">
+            <h2 className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-500 mb-4 flex items-center gap-2">
+              <Layers size={14} /> Diagnostic Telemetry Subsystems
+            </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-[#050505] border border-zinc-800/80 p-6 rounded-sm group hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 blur-2xl group-hover:bg-emerald-500/10 transition-colors" />
+                <h4 className="text-white text-xs font-bold tracking-widest uppercase mb-2 flex items-center gap-2">
+                  <Globe size={14} className="text-emerald-500" /> Live Pipeline
+                </h4>
+                <p className="text-zinc-500 text-xs leading-relaxed font-mono">Active connection resolving global pricing vectors continuously.</p>
+              </div>
               
-              <Card className="bg-zinc-900/40 border-white/5 hover:bg-zinc-900/80 transition-all duration-300 group overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all group-hover:bg-cyan-500/20" />
-                <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-4 border border-cyan-500/20 text-cyan-400 group-hover:scale-110 transition-transform">
-                    <Target size={20} />
-                  </div>
-                  <h4 className="text-zinc-200 font-bold mb-2 tracking-wide">Live Market Value</h4>
-                  <p className="text-zinc-500 text-sm leading-relaxed group-hover:text-zinc-400 transition-colors">
-                    Real-time closing price dynamically fetched and parsed from institutional API pipelines.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-zinc-900/40 border-white/5 hover:bg-zinc-900/80 transition-all duration-300 group overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all group-hover:bg-emerald-500/20" />
-                <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 border border-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
-                    <Cpu size={20} />
-                  </div>
-                  <h4 className="text-zinc-200 font-bold mb-2 tracking-wide">Predictive Target</h4>
-                  <p className="text-zinc-500 text-sm leading-relaxed group-hover:text-zinc-400 transition-colors">
-                    Forecasted next-day trajectory generated by our underlying Stacked LSTM neural network.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-zinc-900/40 border-white/5 hover:bg-zinc-900/80 transition-all duration-300 group overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all group-hover:bg-indigo-500/20" />
-                <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center mb-4 border border-indigo-500/20 text-indigo-400 group-hover:scale-110 transition-transform">
-                    <Layers size={20} />
-                  </div>
-                  <h4 className="text-zinc-200 font-bold mb-2 tracking-wide">Core Fundamentals</h4>
-                  <p className="text-zinc-500 text-sm leading-relaxed group-hover:text-zinc-400 transition-colors">
-                    Institutional mapping of the asset's macro sector, capital structure, and trading volume.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-zinc-900/40 border-white/5 hover:bg-zinc-900/80 transition-all duration-300 group overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all group-hover:bg-purple-500/20" />
-                <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4 border border-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
-                    <LineChart size={20} />
-                  </div>
-                  <h4 className="text-zinc-200 font-bold mb-2 tracking-wide">Trend Trajectory</h4>
-                  <p className="text-zinc-500 text-sm leading-relaxed group-hover:text-zinc-400 transition-colors">
-                    Visual matrix of simulated intraday volatility mapping the pathway to the AI's target.
-                  </p>
-                </CardContent>
-              </Card>
-
+              <div className="bg-[#050505] border border-zinc-800/80 p-6 rounded-sm group hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 blur-2xl group-hover:bg-emerald-500/10 transition-colors" />
+                <h4 className="text-white text-xs font-bold tracking-widest uppercase mb-2 flex items-center gap-2">
+                  <Cpu size={14} className="text-emerald-500" /> LSTM Forecast
+                </h4>
+                <p className="text-zinc-500 text-xs leading-relaxed font-mono">Deep Learning models calculating structural probability matrices.</p>
+              </div>
+              
+              <div className="bg-[#050505] border border-zinc-800/80 p-6 rounded-sm group hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 blur-2xl group-hover:bg-emerald-500/10 transition-colors" />
+                <h4 className="text-white text-xs font-bold tracking-widest uppercase mb-2 flex items-center gap-2">
+                  <BarChart3 size={14} className="text-emerald-500" /> Macro Sync
+                </h4>
+                <p className="text-zinc-500 text-xs leading-relaxed font-mono">Real-time validation against underlying market sector logic.</p>
+              </div>
+              
+              <div className="bg-[#050505] border border-zinc-800/80 p-6 rounded-sm group hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 blur-2xl group-hover:bg-emerald-500/10 transition-colors" />
+                <h4 className="text-white text-xs font-bold tracking-widest uppercase mb-2 flex items-center gap-2">
+                  <Target size={14} className="text-emerald-500" /> Simulation
+                </h4>
+                <p className="text-zinc-500 text-xs leading-relaxed font-mono">Mapping localized volatility via geometric pathfinding.</p>
+              </div>
             </div>
           </div>
+          
         </div>
       )}
     </div>

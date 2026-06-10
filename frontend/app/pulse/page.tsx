@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Activity, Globe, Newspaper, TrendingUp, TrendingDown, Minus, AlertTriangle, Radio, BookOpen } from "lucide-react";
+import { Activity, Globe, Newspaper, TrendingUp, TrendingDown, Minus, AlertTriangle, Radio, BookOpen, Layers } from "lucide-react";;
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useTicker } from "../../context/TickerContext";
@@ -37,98 +37,122 @@ export default function MarketPulsePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans selection:bg-emerald-500/30 pb-20">
+    <div className="min-h-screen bg-[#050505] text-zinc-100 p-4 md:p-8 font-sans selection:bg-emerald-500/30 pb-20 flex flex-col relative overflow-hidden">
       
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <Globe size={32} className="text-emerald-400" />
-          <div>
-            <h1 className="text-2xl font-bold tracking-wider">Market Pulse: {globalTicker}</h1>
-            <p className="text-zinc-500 text-sm">Asset-Specific NLP & Sentiment Analysis</p>
+      {/* --- PRO-MAX BACKGROUND EFFECTS --- */}
+      <div className="fixed inset-0 z-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="fixed top-0 right-0 w-[800px] h-[600px] opacity-10 pointer-events-none bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-cyan-500 via-transparent to-transparent blur-[100px] z-0" />
+
+      {/* --- HEADER --- */}
+      <div className="flex items-center justify-between mb-10 relative z-10">
+        <div className="flex items-center gap-4 group cursor-default">
+          <div className="h-12 w-12 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.15)] group-hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-500">
+            <Globe size={24} className="text-cyan-400 group-hover:scale-110 transition-transform duration-500" />
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-2xl md:text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-sm uppercase">
+              Pulse <span className="text-white">{globalTicker}</span>
+            </h1>
+            <p className="text-[10px] md:text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase mt-0.5">
+              Asset-Specific NLP & Sentiment
+            </p>
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+
+        <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.15)] backdrop-blur-md">
           <Radio size={14} className="text-emerald-400 animate-pulse" />
-          <span className="text-xs font-bold tracking-widest text-emerald-400">LIVE FEED</span>
+          <span className="text-[10px] font-bold tracking-[0.2em] text-emerald-400 uppercase">Live Intercept</span>
         </div>
       </div>
 
-      {/* Top Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      {/* --- TOP OVERVIEW CARDS --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 relative z-10">
         
         {/* Fear & Greed Index */}
-        <Card className="bg-zinc-900/50 border-white/5 backdrop-blur-xl md:col-span-2">
+        <Card className="lg:col-span-8 bg-white/[0.02] border-white/[0.05] backdrop-blur-2xl rounded-2xl overflow-hidden relative group shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
           <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-sm font-bold tracking-widest text-zinc-400 flex items-center gap-2">
-              <Activity className="h-4 w-4" /> ASSET SENTIMENT INDEX ({globalTicker})
+            <CardTitle className="text-zinc-500 text-xs font-bold tracking-[0.2em] uppercase flex items-center gap-2">
+              <Activity className="h-4 w-4 text-cyan-400" /> 
+              Asset Sentiment Index
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="w-full md:w-1/2">
-              <h2 className="text-4xl font-bold text-white mb-2">{macroScore} / 100</h2>
-              <p className="text-emerald-400 font-bold tracking-widest mb-4">{sentimentLabel}</p>
-              <div className="h-3 w-full bg-zinc-800 rounded-full overflow-hidden flex">
-                <div className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-emerald-500 transition-all duration-1000" style={{ width: `${macroScore}%` }}></div>
+              <div className="flex items-end gap-3 mb-2">
+                <h2 className="text-6xl font-mono font-black tracking-tighter text-white drop-shadow-md">{macroScore}</h2>
+                <span className="text-xl text-zinc-600 font-mono font-bold mb-2">/ 100</span>
               </div>
-              <div className="flex justify-between text-xs text-zinc-500 font-bold tracking-widest mt-2">
-                <span>FEAR</span>
-                <span>NEUTRAL</span>
-                <span>GREED</span>
+              <p className="text-emerald-400 font-bold tracking-[0.2em] text-xs mb-5">{sentimentLabel}</p>
+              
+              <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden flex border border-white/5 shadow-inner">
+                <div className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-emerald-500 transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${macroScore}%` }}></div>
+              </div>
+              <div className="flex justify-between text-[10px] text-zinc-500 font-bold tracking-widest mt-3 uppercase">
+                <span>Fear</span>
+                <span>Neutral</span>
+                <span>Greed</span>
               </div>
             </div>
+            
             <div className="w-full md:w-1/2 text-sm text-zinc-400 leading-relaxed border-l border-white/5 pl-0 md:pl-8">
-              The NLP engine has isolated <strong className="text-white">4,280</strong> specific references to <strong className="text-emerald-400">{globalTicker}</strong> in the last 24 hours. Current linguistic weighting indicates strong institutional accumulation.
+              The NLP engine has isolated <strong className="text-white font-mono bg-white/5 px-1.5 py-0.5 rounded border border-white/10">4,280</strong> specific references to <strong className="text-cyan-400">{globalTicker}</strong> in the last 24 hours. Current linguistic weighting indicates strong institutional accumulation.
             </div>
           </CardContent>
         </Card>
 
         {/* Volatility Monitor */}
-        <Card className="bg-zinc-900/50 border-white/5 backdrop-blur-xl flex flex-col justify-center">
+        <Card className="lg:col-span-4 bg-white/[0.02] border-white/[0.05] backdrop-blur-2xl rounded-2xl flex flex-col justify-center shadow-2xl relative overflow-hidden group">
+          <div className="absolute -right-20 -top-20 w-40 h-40 bg-yellow-500/5 rounded-full blur-3xl group-hover:bg-yellow-500/10 transition-colors duration-700 pointer-events-none" />
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold tracking-widest text-zinc-400 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-500" /> IMPLIED VOLATILITY
+            <CardTitle className="text-zinc-500 text-xs font-bold tracking-[0.2em] uppercase flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" /> 
+              Implied Volatility
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-5xl font-bold text-white mb-2">{volatilityIndex}</div>
-            <p className="text-sm font-medium text-emerald-400 flex items-center gap-1">
-              <TrendingUp size={16} /> +1.24 (+8.03%)
-            </p>
-            <p className="text-xs text-zinc-500 mt-4">Options pricing suggests expected price swings in the near term for this asset.</p>
+            <div className="text-6xl font-mono font-black tracking-tighter text-white mb-3 drop-shadow-md">{volatilityIndex}</div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-emerald-400 text-xs font-bold tracking-wider">
+                <TrendingUp size={14} strokeWidth={3} />
+                <span className="font-mono">+1.24 (+8.03%)</span>
+              </div>
+            </div>
+            <p className="text-xs text-zinc-500 mt-5 leading-relaxed">Options pricing suggests expected price swings in the near term for this asset.</p>
           </CardContent>
         </Card>
 
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
         
         {/* Live NLP News Feed */}
-        <Card className="bg-zinc-900/50 border-white/5 backdrop-blur-xl lg:col-span-2 flex flex-col">
+        <Card className="bg-white/[0.02] border-white/[0.05] backdrop-blur-2xl rounded-2xl lg:col-span-2 flex flex-col shadow-2xl relative overflow-hidden">
           <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-sm font-bold tracking-widest text-zinc-400 flex items-center gap-2">
-              <Newspaper className="h-4 w-4" /> RELEVANT NLP HEADLINES
+            <CardTitle className="text-zinc-500 text-xs font-bold tracking-[0.2em] uppercase flex items-center gap-2">
+              <Newspaper className="h-4 w-4 text-blue-400" /> 
+              Intercepted NLP Headlines
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0 flex-1 overflow-y-auto max-h-[500px] p-0">
+          <CardContent className="pt-0 flex-1 overflow-y-auto max-h-[450px] p-0 custom-scrollbar">
             <div className="divide-y divide-white/5">
               {newsFeed.map((news) => (
-                <div key={news.id} className="p-6 hover:bg-zinc-800/30 transition-colors group">
-                  <div className="flex justify-between items-start mb-2">
+                <div key={news.id} className="p-6 hover:bg-white/[0.02] transition-colors duration-300 group cursor-default">
+                  <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold text-zinc-500">{news.time}</span>
-                      <span className="text-xs font-bold tracking-widest text-zinc-300 bg-zinc-800 px-2 py-0.5 rounded-sm">{news.source.toUpperCase()}</span>
+                      <span className="text-[10px] font-mono font-bold text-zinc-500 bg-black/40 px-2 py-1 rounded border border-white/5">{news.time}</span>
+                      <span className="text-[10px] font-bold tracking-[0.2em] text-zinc-300 bg-white/5 px-2 py-1 rounded border border-white/5 uppercase">{news.source}</span>
                     </div>
-                    <div className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
-                      news.sentiment === 'BULLISH' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                      news.sentiment === 'BEARISH' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 
+                    <div className={`flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md border ${
+                      news.sentiment === 'BULLISH' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' : 
+                      news.sentiment === 'BEARISH' ? 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]' : 
                       'bg-zinc-800 text-zinc-400 border-zinc-700'
                     }`}>
-                      {news.sentiment === 'BULLISH' ? <TrendingUp size={12} /> : news.sentiment === 'BEARISH' ? <TrendingDown size={12} /> : <Minus size={12} />}
-                      {news.sentiment} ({news.score > 0 ? '+' : ''}{news.score})
+                      {news.sentiment === 'BULLISH' ? <TrendingUp size={12} strokeWidth={2.5} /> : news.sentiment === 'BEARISH' ? <TrendingDown size={12} strokeWidth={2.5} /> : <Minus size={12} strokeWidth={2.5} />}
+                      {news.sentiment} <span className="font-mono ml-1 opacity-80">({news.score > 0 ? '+' : ''}{news.score})</span>
                     </div>
                   </div>
-                  <p className="text-zinc-200 font-medium leading-relaxed group-hover:text-white transition-colors">
+                  <p className="text-zinc-300 text-sm leading-relaxed group-hover:text-white transition-colors duration-300">
                     {news.text}
                   </p>
                 </div>
@@ -138,23 +162,28 @@ export default function MarketPulsePage() {
         </Card>
 
         {/* Sector Momentum Chart */}
-        <Card className="bg-zinc-900/50 border-white/5 backdrop-blur-xl">
+        <Card className="bg-white/[0.02] border-white/[0.05] backdrop-blur-2xl rounded-2xl shadow-2xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-t from-blue-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
           <CardHeader className="border-b border-white/5 pb-4">
-            <CardTitle className="text-sm font-bold tracking-widest text-zinc-400">SECTOR COMPARISON</CardTitle>
+            <CardTitle className="text-zinc-500 text-xs font-bold tracking-[0.2em] uppercase flex items-center gap-2">
+              <Layers className="h-4 w-4 text-purple-400" />
+              Sector Comparison
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="h-[400px] w-full">
+            <div className="h-[360px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={sectorData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                   <XAxis type="number" domain={[-50, 100]} hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#a1a1aa', fontSize: 12 }} width={80} />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#71717a', fontSize: 10, fontWeight: 700, letterSpacing: '0.05em' }} width={85} />
                   <Tooltip 
-                    cursor={{ fill: '#27272a', opacity: 0.4 }}
-                    contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '8px', color: '#fff' }}
+                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                    contentStyle={{ backgroundColor: 'rgba(10, 10, 10, 0.8)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }}
+                    itemStyle={{ fontFamily: 'monospace', fontWeight: 'bold' }}
                   />
-                  <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={24}>
+                  <Bar dataKey="score" radius={[0, 6, 6, 0]} barSize={20}>
                     {sectorData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.score >= 0 ? '#10b981' : '#ef4444'} />
+                      <Cell key={`cell-${index}`} fill={entry.score >= 0 ? '#10b981' : '#ef4444'} className="transition-all duration-300 hover:opacity-80" />
                     ))}
                   </Bar>
                 </BarChart>
@@ -166,49 +195,60 @@ export default function MarketPulsePage() {
       </div>
 
       {/* --- EDUCATIONAL FOOTER --- */}
-      <Card className="bg-zinc-900/30 border-white/5 mt-8">
-        <CardHeader className="border-b border-white/5 pb-4">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-zinc-400" />
-            <CardTitle className="text-sm font-bold tracking-widest text-zinc-300">HOW AI SENTIMENT ANALYSIS WORKS</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-x-8 gap-y-6 text-sm">
-            <div>
-              <div className="text-emerald-400/20 font-black text-4xl mb-1 -ml-1">01</div>
-              <h4 className="text-emerald-400 font-bold mb-1">Data Scraping</h4>
-              <p className="text-zinc-400 leading-relaxed">
-                The NLP engine constantly monitors global financial news networks, institutional press releases, and verified financial social media streams.
+      <div className="pt-10 relative z-10">
+        <div className="mb-6 flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-zinc-500" />
+          <h2 className="text-sm font-bold tracking-[0.2em] uppercase text-zinc-500">How AI Sentiment Analysis Works</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <Card className="bg-white/[0.01] border-white/[0.05] backdrop-blur-xl rounded-2xl hover:bg-white/[0.03] transition-all duration-500 group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl -mr-8 -mt-8 transition-all group-hover:bg-cyan-500/20 pointer-events-none" />
+            <CardContent className="p-6">
+              <div className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400/80 to-cyan-900/20 font-black text-5xl mb-3 -ml-1 select-none">01</div>
+              <h4 className="text-zinc-200 font-bold mb-2 tracking-wide text-sm uppercase">Data Scraping</h4>
+              <p className="text-zinc-500 text-xs leading-relaxed group-hover:text-zinc-400 transition-colors">
+                The NLP engine constantly monitors global financial news networks, institutional press releases, and verified social streams.
               </p>
-            </div>
-            
-            <div>
-              <div className="text-emerald-400/20 font-black text-4xl mb-1 -ml-1">02</div>
-              <h4 className="text-emerald-400 font-bold mb-1">Language Processing</h4>
-              <p className="text-zinc-400 leading-relaxed">
-                Advanced machine learning models read the text, identifying whether the linguistic tone regarding your selected asset is positive, negative, or neutral.
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white/[0.01] border-white/[0.05] backdrop-blur-xl rounded-2xl hover:bg-white/[0.03] transition-all duration-500 group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -mr-8 -mt-8 transition-all group-hover:bg-emerald-500/20 pointer-events-none" />
+            <CardContent className="p-6">
+              <div className="text-transparent bg-clip-text bg-gradient-to-b from-emerald-400/80 to-emerald-900/20 font-black text-5xl mb-3 -ml-1 select-none">02</div>
+              <h4 className="text-zinc-200 font-bold mb-2 tracking-wide text-sm uppercase">Language Processing</h4>
+              <p className="text-zinc-500 text-xs leading-relaxed group-hover:text-zinc-400 transition-colors">
+                Advanced machine learning models identify whether the linguistic tone regarding your selected asset is positive or negative.
               </p>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div>
-              <div className="text-emerald-400/20 font-black text-4xl mb-1 -ml-1">03</div>
-              <h4 className="text-emerald-400 font-bold mb-1">Score Aggregation</h4>
-              <p className="text-zinc-400 leading-relaxed">
-                Individual headline scores are combined into a master "Fear & Greed" index to give you a clear, mathematical view of overall market psychology.
+          <Card className="bg-white/[0.01] border-white/[0.05] backdrop-blur-xl rounded-2xl hover:bg-white/[0.03] transition-all duration-500 group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl -mr-8 -mt-8 transition-all group-hover:bg-purple-500/20 pointer-events-none" />
+            <CardContent className="p-6">
+              <div className="text-transparent bg-clip-text bg-gradient-to-b from-purple-400/80 to-purple-900/20 font-black text-5xl mb-3 -ml-1 select-none">03</div>
+              <h4 className="text-zinc-200 font-bold mb-2 tracking-wide text-sm uppercase">Score Aggregation</h4>
+              <p className="text-zinc-500 text-xs leading-relaxed group-hover:text-zinc-400 transition-colors">
+                Individual headline scores are combined into a master "Fear & Greed" index to give a mathematical view of market psychology.
               </p>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div>
-              <div className="text-emerald-400/20 font-black text-4xl mb-1 -ml-1">04</div>
-              <h4 className="text-emerald-400 font-bold mb-1">Sector Correlation</h4>
-              <p className="text-zinc-400 leading-relaxed">
-                The AI maps your asset against broader economic sectors to determine if the stock is being dragged down by its industry, or outperforming it.
+          <Card className="bg-white/[0.01] border-white/[0.05] backdrop-blur-xl rounded-2xl hover:bg-white/[0.03] transition-all duration-500 group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -mr-8 -mt-8 transition-all group-hover:bg-blue-500/20 pointer-events-none" />
+            <CardContent className="p-6">
+              <div className="text-transparent bg-clip-text bg-gradient-to-b from-blue-400/80 to-blue-900/20 font-black text-5xl mb-3 -ml-1 select-none">04</div>
+              <h4 className="text-zinc-200 font-bold mb-2 tracking-wide text-sm uppercase">Sector Correlation</h4>
+              <p className="text-zinc-500 text-xs leading-relaxed group-hover:text-zinc-400 transition-colors">
+                The AI maps your asset against broader economic sectors to determine if the stock is outperforming its industry.
               </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+        </div>
+      </div>
 
     </div>
   );
