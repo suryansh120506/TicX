@@ -7,7 +7,6 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { useTicker } from "../../context/TickerContext";
 
 export default function MarketPulsePage() {
-  // 1. Updated to match the new Context variable name
   const { selectedTicker } = useTicker();
 
   // --- DYNAMIC DATA GENERATOR (Only runs if a ticker exists) ---
@@ -15,7 +14,6 @@ export default function MarketPulsePage() {
     return str.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   };
   
-  // Safe calculation: only generate if selectedTicker is not null
   const hash = selectedTicker ? generateHash(selectedTicker.toUpperCase()) : 0;
 
   const macroScore = 40 + (hash % 50); 
@@ -40,7 +38,8 @@ export default function MarketPulsePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#030405] text-slate-100 p-4 md:p-8 font-sans selection:bg-amber-500/30 pb-20 flex flex-col relative overflow-hidden">
+    // FIX: Swapped overflow-hidden for overflow-y-auto overflow-x-hidden and added custom-scrollbar
+    <div className="min-h-screen bg-[#030405] text-slate-100 p-4 md:p-8 font-sans selection:bg-amber-500/30 pb-20 flex flex-col relative overflow-y-auto overflow-x-hidden custom-scrollbar">
       
       {/* --- PRO-MAX BACKGROUND EFFECTS --- */}
       <div className="fixed inset-0 z-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
@@ -68,7 +67,7 @@ export default function MarketPulsePage() {
         </div>
       </div>
 
-      {/* 2. THE CONDITIONAL RENDER: Standby vs Dashboard */}
+      {/* THE CONDITIONAL RENDER: Standby vs Dashboard */}
       {!selectedTicker ? (
         
         /* --- STANDBY DISCLAIMER SCREEN --- */
