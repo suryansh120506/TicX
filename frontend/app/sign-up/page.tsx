@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { SignUp } from "@clerk/nextjs";
 import { SparklesCore } from "@/components/ui/sparkles";
-import { dark } from "@clerk/themes";
 
 export default function SignUpPage() {
   const [quoteIndex, setQuoteIndex] = useState(0);
@@ -182,7 +181,6 @@ export default function SignUpPage() {
                 signInUrl="/sign-in"
                 fallbackRedirectUrl="/"
                 appearance={{
-                  baseTheme: dark,
                   elements: {
                     rootBox: "w-full",
                     card: "bg-transparent border-none shadow-none w-full", 
