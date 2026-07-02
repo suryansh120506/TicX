@@ -2,10 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yfinance as yf
+import requests  # <-- INJECTED
 import random
 import os
 
 app = FastAPI()
+
+# <-- INJECTED: Global Session Disguise to bypass Render IP block
+session = requests.Session()
+session.headers.update(
+    {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+)
 
 # Allow the frontend to talk to the backend securely
 app.add_middleware(
@@ -25,8 +32,8 @@ class AdvisorQuery(BaseModel):
 @app.get("/api/predict/{ticker}")
 async def get_prediction(ticker: str):
     try:
-        # Fetch real-time data from Yahoo Finance
-        stock = yf.Ticker(ticker)
+        # <-- INJECTED: Pass the disguised session to yFinance
+        stock = yf.Ticker(ticker, session=session)
         
         # Get the absolute latest price (works for Indian .NS stocks and US stocks)
         current_price = stock.fast_info['last_price']
@@ -49,9 +56,6 @@ async def get_prediction(ticker: str):
 # 2. NEURAL LLM ADVISOR PIPELINE
 @app.post("/api/advisor")
 async def get_advisor_response(query: AdvisorQuery):
-    # NOTE: This is where you will add your OpenAI or Anthropic API key later!
-    # For now, we return a dynamic, context-aware simulated response so the frontend works instantly.
-    
     ticker = query.ticker.upper()
     
     return {
