@@ -80,7 +80,7 @@ export default function Sidebar() {
 
       {/* --- SECURE DISCONNECT (Sign Out) --- */}
       <div className="p-4 border-t border-slate-800/60">
-        <SignOutButton>
+        <SignOutButton redirectUrl="/sign-in">
           <button className="flex items-center justify-between w-full px-4 py-3 rounded-sm bg-red-500/5 border border-red-500/20 text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-300 group shadow-[0_0_15px_rgba(239,68,68,0)] hover:shadow-[0_0_15px_rgba(239,68,68,0.1)]">
             <div className="flex flex-col items-start">
               <span className="text-[10px] font-mono tracking-widest uppercase text-red-500/70 group-hover:text-red-400">Secure Session</span>
