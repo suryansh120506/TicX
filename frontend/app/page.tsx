@@ -123,7 +123,8 @@ export default function NexusTerminal() {
     }
 
     try {
-      // BRUTE FORCE PRODUCTION URL - Replace the URL below with YOUR actual Render URL!
+      // ⚠️ IMPORTANT: Put your EXACT live Render URL inside the quotes below!
+      // DO NOT put a slash (/) at the very end of the URL.
       const API_BASE_URL = "https://ticx-wx9t.onrender.com"; 
 
       console.log(`[Telemetry Sync] Fetching sequence ${finalQuery} from target: ${API_BASE_URL}`);
