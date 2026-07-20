@@ -131,7 +131,7 @@ export default function NexusTerminal() {
         if (hostname !== "localhost" && hostname !== "127.0.0.1") {
           // If we are running live on Vercel, route to your live backend engine
           // REPLACE THE URL BELOW WITH YOUR ACTUAL LIVE RENDER ENDPOINT:
-          API_BASE_URL = "https://your-ticx-backend.onrender.com"; 
+          API_BASE_URL = "https://ticx-wx9t.onrender.com"; 
         }
       }
 
