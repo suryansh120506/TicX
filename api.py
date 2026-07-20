@@ -30,54 +30,63 @@ class AdvisorQuery(BaseModel):
     ticker: str
     question: str
 
-# 1. LIVE MARKET DATA PIPELINE (WITH BULLETPROOF FAIL-SAFE)
+# --- INJECTED: Fallback Mappings & Formatters ---
+SECTOR_MAP = {
+    "AAPL": "Consumer Electronics", "MSFT": "Software", "TSLA": "Auto Manufacturers",
+    "NVDA": "Semiconductors", "AMZN": "Internet Retail", "GOOGL": "Internet Content",
+    "RELIANCE.NS": "Energy", "ZOMATO.NS": "Consumer Cyclical", "TATAMOTORS.NS": "Automotive",
+    "TATAPOWER.NS": "Utilities", "TCS.NS": "IT Services", "HDFCBANK.NS": "Banking",
+    "INFY.NS": "IT Services", "SBIN.NS": "Banking", "ITC.NS": "Consumer Defensive",
+    "PAYTM.NS": "Financial Tech", "SUZLON.NS": "Renewable Energy"
+}
+
+def format_market_cap(mcap, is_inr):
+    if not mcap: return "N/A"
+    sym = "₹" if is_inr else "$"
+    if mcap >= 1e12: return f"{sym}{mcap/1e12:.2f}T"
+    elif mcap >= 1e9: return f"{sym}{mcap/1e9:.2f}B"
+    elif mcap >= 1e6: return f"{sym}{mcap/1e6:.2f}M"
+    return f"{sym}{mcap}"
+
+# 1. LIVE MARKET DATA PIPELINE
 @app.get("/api/predict/{ticker}")
 async def get_prediction(ticker: str):
     ticker_upper = ticker.upper()
     try:
-        # ATTEMPT 1: Try the history endpoint (Bypasses some fast_info blocks on Render)
         stock = yf.Ticker(ticker_upper, session=session)
-        hist = stock.history(period="1d")
         
-        if not hist.empty:
-            current_price = float(hist['Close'].iloc[-1])
-            company_name = stock.info.get('longName', ticker_upper)
-            sector = stock.info.get('sector', 'Technology')
-            market_cap = stock.info.get('marketCap', 'N/A')
-        else:
-            raise ValueError("Yahoo returned empty dataframe (IP Blocked)")
+        # Get the absolute latest price
+        current_price = stock.fast_info['last_price']
+        
+        # 1. Market Cap: Use fast_info (reliable) and format it
+        raw_mcap = stock.fast_info.get('market_cap')
+        is_inr = ".NS" in ticker_upper or ".BO" in ticker_upper
+        formatted_mcap = format_market_cap(raw_mcap, is_inr)
 
-        # AI Target placeholder 
+        # 2. Sector: Try Yahoo first, fallback to our dictionary
+        sector = stock.info.get('sector')
+        if not sector:
+            sector = SECTOR_MAP.get(ticker_upper, "Technology")
+
+        # 3. Company Name: Try Yahoo, fallback to formatting the ticker
+        company_name = stock.info.get('longName')
+        if not company_name:
+            company_name = f"{ticker_upper} Corporation"
+
+        # AI Target placeholder
         ai_target = current_price * (1 + random.uniform(0.01, 0.05))
-
+        
         return {
             "ticker": ticker_upper,
             "current_price": round(current_price, 2),
             "ai_target": round(ai_target, 2),
             "company_name": company_name,
             "sector": sector,
-            "market_cap": market_cap
+            "market_cap": formatted_mcap
         }
-
     except Exception as e:
-        print(f"Yahoo Blocked {ticker_upper} - Triggering Emergency Fallback. Error: {e}")
-        
-        # ATTEMPT 2: THE FAIL-SAFE (Never let the recruiter see a broken UI)
-        mock_price = random.uniform(150.0, 450.0)
-        if ".NS" in ticker_upper:  # Adjust for Indian Stocks
-            mock_price = random.uniform(1500.0, 3500.0)
-            
-        mock_target = mock_price * (1 + random.uniform(0.01, 0.05))
-        
-        return {
-            "ticker": ticker_upper,
-            "current_price": round(mock_price, 2),
-            "ai_target": round(mock_target, 2),
-            "company_name": f"{ticker_upper} Corporation",
-            "sector": "Quantitative Tech",
-            "market_cap": "Data Unavailable (Fail-Safe)",
-            "warning": "Live market connection restricted by upstream provider. Displaying simulated telemetry."
-        }
+        print(f"Error fetching {ticker_upper}: {e}")
+        return {"current_price": 0, "error": str(e)}
 
 # 2. NEURAL LLM ADVISOR PIPELINE
 @app.post("/api/advisor")
