@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yfinance as yf
-import requests  
+import requests
 import random
 import os
 
@@ -20,13 +20,12 @@ session.headers.update(
 # Allow the frontend to talk to the backend securely
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://your-ticx-app.vercel.app"], # Make sure your Vercel URL is added here if it changes
+    allow_origins=["http://localhost:3000", "https://your-ticx-app.vercel.app"], # Update Vercel URL if needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Define the data structure for the AI Chat
 class AdvisorQuery(BaseModel):
     ticker: str
     question: str
@@ -48,7 +47,7 @@ async def get_prediction(ticker: str):
         else:
             raise ValueError("Yahoo returned empty dataframe (IP Blocked)")
 
-        # AI Target placeholder (We will hook your PyTorch LSTM here later)
+        # AI Target placeholder 
         ai_target = current_price * (1 + random.uniform(0.01, 0.05))
 
         return {
@@ -64,9 +63,7 @@ async def get_prediction(ticker: str):
         print(f"Yahoo Blocked {ticker_upper} - Triggering Emergency Fallback. Error: {e}")
         
         # ATTEMPT 2: THE FAIL-SAFE (Never let the recruiter see a broken UI)
-        # We generate realistic mock data based on the ticker name so the UI renders perfectly.
         mock_price = random.uniform(150.0, 450.0)
-        
         if ".NS" in ticker_upper:  # Adjust for Indian Stocks
             mock_price = random.uniform(1500.0, 3500.0)
             
@@ -86,7 +83,6 @@ async def get_prediction(ticker: str):
 @app.post("/api/advisor")
 async def get_advisor_response(query: AdvisorQuery):
     ticker = query.ticker.upper()
-    
     return {
         "answer": f"Neural diagnostic complete for {ticker}. Regarding your query ('{query.question}'): Institutional volume matrices indicate a 14% deviation from the 30-day moving average. The Stacked LSTM model suggests holding until macro indicators confirm the breakout."
     }
