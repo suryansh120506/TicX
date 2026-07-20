@@ -123,7 +123,20 @@ export default function NexusTerminal() {
     }
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/predict/${finalQuery}`);
+      // DYNAMIC CLIENT-SIDE ROUTER (Bypasses Vercel build-time environment variable traps)
+      let API_BASE_URL = "http://127.0.0.1:8000"; // Fallback to local machine
+      
+      if (typeof window !== "undefined") {
+        const hostname = window.location.hostname;
+        if (hostname !== "localhost" && hostname !== "127.0.0.1") {
+          // If we are running live on Vercel, route to your live backend engine
+          // REPLACE THE URL BELOW WITH YOUR ACTUAL LIVE RENDER ENDPOINT:
+          API_BASE_URL = "https://your-ticx-backend.onrender.com"; 
+        }
+      }
+
+      console.log(`[Telemetry Sync] Fetching sequence ${finalQuery} from target: ${API_BASE_URL}`);
+      const res = await fetch(`${API_BASE_URL}/api/predict/${finalQuery}`);
       
       if (!res.ok) {
         setSearchError(`Unable to resolve asset information.`);
@@ -184,7 +197,6 @@ export default function NexusTerminal() {
   ] : [];
 
   return (
-    // FIX 1: Removed overflow-hidden so the page actually scrolls naturally!
     <div className="min-h-screen bg-[#030405] text-slate-100 p-6 md:p-10 font-sans selection:bg-amber-500/30 pb-32 flex flex-col w-full max-w-[1800px] mx-auto relative">
       
       {/* --- PRO-MAX BACKGROUND: TACTICAL GRID --- */}
