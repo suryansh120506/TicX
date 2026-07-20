@@ -20,8 +20,8 @@ session.headers.update(
 # Allow the frontend to talk to the backend securely
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://your-ticx-app.vercel.app"], # Update Vercel URL if needed
-    allow_credentials=True,
+    allow_origins=["*"], 
+    allow_credentials=False, # <--- THIS IS THE FIX. It MUST be False when origins is ["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
