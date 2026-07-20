@@ -123,17 +123,8 @@ export default function NexusTerminal() {
     }
 
     try {
-      // DYNAMIC CLIENT-SIDE ROUTER (Bypasses Vercel build-time environment variable traps)
-      let API_BASE_URL = "http://127.0.0.1:8000"; // Fallback to local machine
-      
-      if (typeof window !== "undefined") {
-        const hostname = window.location.hostname;
-        if (hostname !== "localhost" && hostname !== "127.0.0.1") {
-          // If we are running live on Vercel, route to your live backend engine
-          // REPLACE THE URL BELOW WITH YOUR ACTUAL LIVE RENDER ENDPOINT:
-          API_BASE_URL = "https://ticx-wx9t.onrender.com"; 
-        }
-      }
+      // BRUTE FORCE PRODUCTION URL - Replace the URL below with YOUR actual Render URL!
+      const API_BASE_URL = "https://ticx-wx9t.onrender.com"; 
 
       console.log(`[Telemetry Sync] Fetching sequence ${finalQuery} from target: ${API_BASE_URL}`);
       const res = await fetch(`${API_BASE_URL}/api/predict/${finalQuery}`);
