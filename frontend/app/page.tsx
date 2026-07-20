@@ -87,9 +87,10 @@ export default function NexusTerminal() {
   };
 
   const handleAnalyze = async (overrideTicker?: string) => {
-    const queryToUse = overrideTicker || searchInput;
-    if (!queryToUse) return;
-    
+        console.log("handleAnalyze started for:", overrideTicker || searchInput);
+        const queryToUse = overrideTicker || searchInput;
+        if (!queryToUse) return;
+        
     setLoading(true);
     setImgError(false);
     setSearchError(""); 
@@ -123,18 +124,22 @@ export default function NexusTerminal() {
     }
 
     try {
-      // Force the URL. Change this string to your ACTUAL Render URL.
-      const API_URL = "https://ticx-wx9t.onrender.com"; 
-      
-      console.log("Fetching from:", `${API_URL}/api/predict/${finalQuery}`);
-      
-      const res = await fetch(`${API_URL}/api/predict/${finalQuery}`);
-      
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
-      }
+            const url = `https://ticx-wx9t.onrender.com/api/predict/${finalQuery}`;
+            console.log("Attempting fetch to:", url);
+            
+            const res = await fetch(url);
+            
+            if (!res.ok) {
+                console.error("Fetch failed with status:", res.status);
+                setSearchError(`Unable to resolve asset information.`);
+                setFailedTicker(queryToUse);
+                setLoading(false);
+                return;
+            }
 
       const json = await res.json();
+      console.log("Data received:", json);
+
       if (json.current_price) {
         setData({
           current_price: json.current_price,
@@ -234,10 +239,13 @@ export default function NexusTerminal() {
             
             <div className="flex items-center pr-2">
               <Button 
-                onClick={() => handleAnalyze()}
+                onClick={() => {
+                  console.log("Execute button clicked!");
+                  handleAnalyze();
+                }}
                 disabled={loading}
                 variant="ghost"
-                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all ${searchError ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white text-black hover:bg-slate-200 shadow-[0_0_15px_rgba(255,255,255,0.1)]'}`}
+                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all ${searchError ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-white text-black hover:bg-slate-200'}`}
               >
                 {loading ? "..." : "EXECUTE"}
               </Button>
