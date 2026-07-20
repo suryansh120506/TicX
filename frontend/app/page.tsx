@@ -123,18 +123,15 @@ export default function NexusTerminal() {
     }
 
     try {
-      // ⚠️ IMPORTANT: Put your EXACT live Render URL inside the quotes below!
-      // DO NOT put a slash (/) at the very end of the URL.
-      const API_BASE_URL = "https://ticx-wx9t.onrender.com"; 
-
-      console.log(`[Telemetry Sync] Fetching sequence ${finalQuery} from target: ${API_BASE_URL}`);
-      const res = await fetch(`${API_BASE_URL}/api/predict/${finalQuery}`);
+      // Force the URL. Change this string to your ACTUAL Render URL.
+      const API_URL = "https://ticx-wx9t.onrender.com"; 
+      
+      console.log("Fetching from:", `${API_URL}/api/predict/${finalQuery}`);
+      
+      const res = await fetch(`${API_URL}/api/predict/${finalQuery}`);
       
       if (!res.ok) {
-        setSearchError(`Unable to resolve asset information.`);
-        setFailedTicker(queryToUse); 
-        setLoading(false);
-        return;
+        throw new Error(`Server returned ${res.status}`);
       }
 
       const json = await res.json();
