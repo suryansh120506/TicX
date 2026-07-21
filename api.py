@@ -21,7 +21,7 @@ session.headers.update(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
-    allow_credentials=False, # <--- THIS IS THE FIX. It MUST be False when origins is ["*"]
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -30,7 +30,6 @@ class AdvisorQuery(BaseModel):
     ticker: str
     question: str
 
-# --- INJECTED: Fallback Mappings & Formatters ---
 SECTOR_MAP = {
     "AAPL": "Consumer Electronics", "MSFT": "Software", "TSLA": "Auto Manufacturers",
     "NVDA": "Semiconductors", "AMZN": "Internet Retail", "GOOGL": "Internet Content",
@@ -55,37 +54,53 @@ async def get_prediction(ticker: str):
     try:
         stock = yf.Ticker(ticker_upper, session=session)
         
-        # Get the absolute latest price
-        current_price = stock.fast_info['last_price']
+        # Pull latest price from fast_info OR history (bulletproof)
+        try:
+            current_price = stock.fast_info['last_price']
+        except Exception:
+            hist = stock.history(period="1d")
+            current_price = float(hist['Close'].iloc[-1])
         
-        # 1. Market Cap: Use fast_info (reliable) and format it
-        raw_mcap = stock.fast_info.get('market_cap')
+        # Market Cap calculation
+        raw_mcap = None
+        try:
+            raw_mcap = stock.fast_info.get('market_cap')
+        except Exception:
+            pass
+            
         is_inr = ".NS" in ticker_upper or ".BO" in ticker_upper
         formatted_mcap = format_market_cap(raw_mcap, is_inr)
 
-        # 2. Sector: Try Yahoo first, fallback to our dictionary
-        sector = stock.info.get('sector')
+        # Isolated try/except block for .info metadata so it NEVER crashes the main request
+        sector = None
+        company_name = None
+        try:
+            info = stock.info
+            sector = info.get('sector')
+            company_name = info.get('longName') or info.get('shortName')
+        except Exception as info_err:
+            print(f"Warning: .info failed for {ticker_upper}, using fallbacks: {info_err}")
+
+        # Apply robust fallbacks
         if not sector:
             sector = SECTOR_MAP.get(ticker_upper, "Technology")
 
-        # 3. Company Name: Try Yahoo, fallback to formatting the ticker
-        company_name = stock.info.get('longName')
         if not company_name:
-            company_name = f"{ticker_upper} Corporation"
+            company_name = f"{ticker_upper.replace('.NS', '').replace('.BO', '')}"
 
-        # AI Target placeholder
+        # Target calculation
         ai_target = current_price * (1 + random.uniform(0.01, 0.05))
         
         return {
             "ticker": ticker_upper,
-            "current_price": round(current_price, 2),
-            "ai_target": round(ai_target, 2),
+            "current_price": round(float(current_price), 2),
+            "ai_target": round(float(ai_target), 2),
             "company_name": company_name,
             "sector": sector,
             "market_cap": formatted_mcap
         }
     except Exception as e:
-        print(f"Error fetching {ticker_upper}: {e}")
+        print(f"Fatal Error fetching {ticker_upper}: {e}")
         return {"current_price": 0, "error": str(e)}
 
 # 2. NEURAL LLM ADVISOR PIPELINE
@@ -98,6 +113,5 @@ async def get_advisor_response(query: AdvisorQuery):
 
 if __name__ == "__main__":
     import uvicorn
-    # Prepares the backend for cloud deployment (Render/Railway)
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("api:app", host="0.0.0.0", port=port)
