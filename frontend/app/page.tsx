@@ -39,6 +39,7 @@ export default function NexusTerminal() {
   const [searchError, setSearchError] = useState("");
   const [failedTicker, setFailedTicker] = useState("");
   const [debugText, setDebugText] = useState(""); 
+  const [hasData, setHasData] = useState(false); // <--- FORCE RENDER TRIGGER
   const searchRef = useRef<HTMLDivElement>(null);
   
   const [data, setData] = useState({
@@ -90,7 +91,7 @@ export default function NexusTerminal() {
     const queryToUse = overrideTicker || searchInput;
     if (!queryToUse) return;
     
-    setDebugText("1. Initializing pipeline...");
+    setDebugText("1. Triggered. Initializing pipeline...");
     setLoading(true);
     setImgError(false);
     setSearchError(""); 
@@ -126,19 +127,19 @@ export default function NexusTerminal() {
     try {
       const API_URL = "https://ticx-wx9t.onrender.com";
       const targetUrl = `${API_URL}/api/predict/${finalQuery}`;
-      setDebugText(`2. Connecting to Render...`);
+      setDebugText(`2. Fetching from: ${targetUrl}`);
 
       let res;
       try {
         res = await fetch(targetUrl);
       } catch (directError) {
-        setDebugText(`3. CORS bypass engaged...`);
+        setDebugText(`3. CORS blocked. Attempting proxy bypass...`);
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
         res = await fetch(proxyUrl);
       }
       
       if (!res.ok) {
-        setDebugText(`Error: Status ${res.status}`);
+        setDebugText(`Error: Server returned status ${res.status}`);
         setSearchError(`Unable to resolve asset information.`);
         setFailedTicker(queryToUse); 
         setLoading(false);
@@ -159,10 +160,11 @@ export default function NexusTerminal() {
         });
         setSelectedTicker(json.ticker || finalQuery);
         setSearchInput(json.ticker || finalQuery); 
+        setHasData(true); // <--- FORCE RENDER TO DASHBOARD
       }
     } catch (error) {
       console.error("API Connection Error:", error);
-      setDebugText(`Crash: Network restriction encountered.`);
+      setDebugText(`Crash: ${error instanceof Error ? error.message : "Unknown error"}`);
       setSearchError("Network interface offline or blocked by browser extension.");
       setFailedTicker(queryToUse);
     } finally {
@@ -316,7 +318,7 @@ export default function NexusTerminal() {
             </CardContent>
           </Card>
         </div>
-      ) : !selectedTicker ? (
+      ) : !hasData ? (
         
         <div className="flex flex-col items-center justify-center flex-1 w-full mt-10 animate-in fade-in zoom-in-95 duration-700 relative z-10">
           <div className="relative h-20 w-20 flex items-center justify-center rounded-2xl bg-slate-900/50 border border-slate-800 shadow-[0_0_40px_rgba(245,158,11,0.15)] mb-6">
