@@ -38,6 +38,7 @@ export default function NexusTerminal() {
   const [imgError, setImgError] = useState(false); 
   const [searchError, setSearchError] = useState("");
   const [failedTicker, setFailedTicker] = useState("");
+  const [debugText, setDebugText] = useState(""); // <--- VISIBLE DEBUG STATE
   const searchRef = useRef<HTMLDivElement>(null);
   
   const [data, setData] = useState({
@@ -85,11 +86,11 @@ export default function NexusTerminal() {
     handleAnalyze(symbol);
   };
 
-  const handleAnalyze = async (overrideTicker?: string) => {
+ const handleAnalyze = async (overrideTicker?: string) => {
     const queryToUse = overrideTicker || searchInput;
     if (!queryToUse) return;
     
-    console.log("Execute Triggered for:", queryToUse);
+    setDebugText("1. Triggered. Initializing pipeline...");
     setLoading(true);
     setImgError(false);
     setSearchError(""); 
@@ -124,19 +125,28 @@ export default function NexusTerminal() {
 
     try {
       const API_URL = "https://ticx-wx9t.onrender.com";
-      console.log(`Fetching from: ${API_URL}/api/predict/${finalQuery}`);
+      const targetUrl = `${API_URL}/api/predict/${finalQuery}`;
+      setDebugText(`2. Fetching from: ${targetUrl}`);
 
-      const res = await fetch(`${API_URL}/api/predict/${finalQuery}`);
+      let res;
+      try {
+        res = await fetch(targetUrl);
+      } catch (directError) {
+        setDebugText(`3. CORS blocked. Attempting proxy bypass...`);
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+        res = await fetch(proxyUrl);
+      }
       
       if (!res.ok) {
-        console.error("Server Error:", res.status);
+        setDebugText(`Error: Server returned status ${res.status}`);
         setSearchError(`Unable to resolve asset information.`);
         setFailedTicker(queryToUse); 
+        setLoading(false);
         return;
       }
 
       const json = await res.json();
-      console.log("Success! Data:", json);
+      setDebugText(`4. Success! Data parsed.`);
 
       if (json.current_price) {
         setData({
@@ -152,6 +162,7 @@ export default function NexusTerminal() {
       }
     } catch (error) {
       console.error("API Connection Error:", error);
+      setDebugText(`Crash: ${error instanceof Error ? error.message : "Unknown error"}`);
       setSearchError("Network interface offline or blocked by browser extension.");
       setFailedTicker(queryToUse);
     } finally {
@@ -252,6 +263,13 @@ export default function NexusTerminal() {
                 {loading ? "..." : "EXECUTE"}
               </button>
             </div>
+
+            {/* VISIBLE DEBUG LOGGER */}
+            {debugText && (
+              <div className="absolute top-14 left-0 w-full bg-[#050505] border border-amber-500/30 p-2 rounded-sm text-[10px] font-mono text-amber-500 z-50">
+                System Status: {debugText}
+              </div>
+            )}
 
             {showSuggestions && filteredSuggestions.length > 0 && (
               <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-[#050505] border border-slate-800 rounded-sm shadow-2xl overflow-hidden z-50">
