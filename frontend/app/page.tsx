@@ -87,10 +87,10 @@ export default function NexusTerminal() {
   };
 
   const handleAnalyze = async (overrideTicker?: string) => {
-        console.log("handleAnalyze started for:", overrideTicker || searchInput);
-        const queryToUse = overrideTicker || searchInput;
-        if (!queryToUse) return;
-        
+    console.log("Execute Triggered!"); // Debugging log
+    const queryToUse = overrideTicker || searchInput;
+    if (!queryToUse) return;
+    
     setLoading(true);
     setImgError(false);
     setSearchError(""); 
@@ -124,21 +124,21 @@ export default function NexusTerminal() {
     }
 
     try {
-            const url = `https://ticx-wx9t.onrender.com/api/predict/${finalQuery}`;
-            console.log("Attempting fetch to:", url);
-            
-            const res = await fetch(url);
-            
-            if (!res.ok) {
-                console.error("Fetch failed with status:", res.status);
-                setSearchError(`Unable to resolve asset information.`);
-                setFailedTicker(queryToUse);
-                setLoading(false);
-                return;
-            }
+      // ⚠️ HARDCODED RENDER URL TO BYPASS VERCEL ENV BUGS
+      const API_URL = "https://ticx-wx9t.onrender.com";
+      console.log(`Fetching from: ${API_URL}/api/predict/${finalQuery}`);
+
+      const res = await fetch(`${API_URL}/api/predict/${finalQuery}`);
+      
+      if (!res.ok) {
+        console.error("Server responded with an error:", res.status);
+        setSearchError(`Unable to resolve asset information.`);
+        setFailedTicker(queryToUse); 
+        return;
+      }
 
       const json = await res.json();
-      console.log("Data received:", json);
+      console.log("Success! Data received:", json);
 
       if (json.current_price) {
         setData({
@@ -156,8 +156,10 @@ export default function NexusTerminal() {
       console.error("API Connection Error:", error);
       setSearchError("Network interface offline. Verification required.");
       setFailedTicker(queryToUse);
+    } finally {
+      // ALWAYS stop the loading spinner, even if it crashes
+      setLoading(false); 
     }
-    setLoading(false);
   };
 
   const guaranteedDomains: Record<string, string> = {
@@ -178,7 +180,7 @@ export default function NexusTerminal() {
 
   // --- DYNAMIC PREVIOUS CLOSE CALCULATOR ---
   const hash = selectedTicker ? selectedTicker.split('').reduce((a, b) => a + b.charCodeAt(0), 0) : 0;
-  const dayChangePct = selectedTicker ? ((hash % 60) - 20) / 10 : 0; // Generates a stable day change between -2.0% and +4.0%
+  const dayChangePct = selectedTicker ? ((hash % 60) - 20) / 10 : 0; 
   const isDayBullish = dayChangePct >= 0;
   const dayChangeValue = data.current_price > 0 ? (data.current_price * (Math.abs(dayChangePct) / 100)) : 0;
   const prevClose = data.current_price > 0 ? (isDayBullish ? data.current_price - dayChangeValue : data.current_price + dayChangeValue) : 0;
@@ -193,14 +195,11 @@ export default function NexusTerminal() {
   return (
     <div className="min-h-screen bg-[#030405] text-slate-100 p-6 md:p-10 font-sans selection:bg-amber-500/30 pb-32 flex flex-col w-full max-w-[1800px] mx-auto relative">
       
-      {/* --- PRO-MAX BACKGROUND: TACTICAL GRID --- */}
       <div className="fixed inset-0 z-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
       <div className="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-b from-amber-500/[0.02] to-transparent pointer-events-none z-0" />
 
-      {/* --- STARK INSTITUTIONAL HEADER --- */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 border-b border-slate-800/60 pb-6 shrink-0 relative z-50">
         
-        {/* Brand */}
         <div className="flex items-center gap-4 select-none group">
           <div className="h-12 w-12 bg-slate-900 border border-slate-800 text-white flex items-center justify-center rounded-sm shadow-[0_0_15px_rgba(0,0,0,0.5)] group-hover:border-amber-500/50 transition-colors duration-500 relative overflow-hidden">
             <div className="absolute inset-0 bg-amber-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
@@ -219,7 +218,6 @@ export default function NexusTerminal() {
           </div>
         </div>
         
-        {/* Command Line Search Bar */}
         <div className="w-full lg:w-[500px]" ref={searchRef}>
           <div className="flex w-full relative bg-[#050505] border border-slate-800 rounded-sm focus-within:border-amber-500/50 focus-within:shadow-[0_0_20px_rgba(245,158,11,0.1)] transition-all duration-300 group">
             <div className="absolute top-0 left-0 w-1 h-full bg-slate-800 group-focus-within:bg-amber-500 transition-colors rounded-l-sm" />
@@ -233,25 +231,30 @@ export default function NexusTerminal() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onFocus={() => setShowSuggestions(true)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAnalyze();
+                }
+              }}
               autoComplete="off"
             />
             
-            <div className="flex items-center pr-2">
+            <div className="flex items-center pr-2 z-10">
               <Button 
-                onClick={() => {
-                  console.log("Execute button clicked!");
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
                   handleAnalyze();
                 }}
                 disabled={loading}
                 variant="ghost"
-                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all ${searchError ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-white text-black hover:bg-slate-200'}`}
+                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all ${searchError ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white text-black hover:bg-slate-200 shadow-[0_0_15px_rgba(255,255,255,0.1)]'}`}
               >
                 {loading ? "..." : "EXECUTE"}
               </Button>
             </div>
 
-            {/* DIRECTORY DROPDOWN */}
             {showSuggestions && filteredSuggestions.length > 0 && (
               <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-[#050505] border border-slate-800 rounded-sm shadow-2xl overflow-hidden z-50">
                 {filteredSuggestions.map((stock) => (
@@ -273,7 +276,6 @@ export default function NexusTerminal() {
         </div>
       </div>
 
-      {/* --- DYNAMIC VIEWPORT RENDERING --- */}
       {searchError ? (
         <div className="flex-1 flex items-center justify-center animate-in fade-in duration-300 relative z-10 w-full">
           <Card className="max-w-2xl w-full bg-[#0a0000] border border-red-900/50 rounded-sm shadow-2xl relative overflow-hidden">
@@ -303,9 +305,7 @@ export default function NexusTerminal() {
         </div>
       ) : !selectedTicker ? (
         
-        /* --- STYLIZED STANDBY DISCLAIMER SCREEN --- */
         <div className="flex flex-col items-center justify-center flex-1 w-full mt-10 animate-in fade-in zoom-in-95 duration-700 relative z-10">
-          
           <div className="relative h-20 w-20 flex items-center justify-center rounded-2xl bg-slate-900/50 border border-slate-800 shadow-[0_0_40px_rgba(245,158,11,0.15)] mb-6">
             <div className="absolute inset-0 border border-amber-500/20 rounded-2xl animate-ping opacity-20" />
             <Activity size={32} className="text-amber-500" strokeWidth={1.5} />
@@ -319,7 +319,6 @@ export default function NexusTerminal() {
             The Ticx Live Terminal is currently on standby. To begin quantitative telemetry and establish a live API connection to the prediction engine, enter a verified asset ticker into the command matrix above.
           </p>
 
-          {/* STANDBY DIAGNOSTIC CAPABILITIES (Re-introduced & Stylized) */}
           <div className="w-full max-w-4xl border-t border-slate-800/50 pt-10">
             <div className="flex items-center justify-center gap-2 mb-8">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
@@ -361,12 +360,9 @@ export default function NexusTerminal() {
         </div>
 
       ) : (
-
-        /* --- MAIN DASHBOARD BRUTALIST GRID --- */
         <div className="space-y-6 w-full animate-in fade-in duration-700 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* PRIMARY DATA CARD */}
             <Card className="lg:col-span-8 bg-[#09090b]/80 backdrop-blur-xl border border-slate-800/80 rounded-sm shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
@@ -394,7 +390,6 @@ export default function NexusTerminal() {
                       <span className="text-white font-mono font-bold text-lg">{sym}{data.ai_target.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     
-                    {/* FIX 2: Uptrends are now visually mapped to Emerald Green */}
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-sm text-sm font-bold border w-full md:w-auto ${isBullish ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]'}`}>
                       {isBullish ? <ArrowUpRight size={18} strokeWidth={2.5} /> : <ArrowDownRight size={18} strokeWidth={2.5} />}
                       <span className="font-mono text-base tracking-wider">{Math.abs(diff).toFixed(2)} ({Math.abs(pctChange).toFixed(2)}%)</span>
@@ -404,7 +399,6 @@ export default function NexusTerminal() {
               </CardContent>
             </Card>
 
-            {/* IDENTITY CARD */}
             <Card className="lg:col-span-4 bg-[#09090b]/80 backdrop-blur-xl border border-slate-800/80 rounded-sm shadow-2xl flex flex-col relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-amber-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
@@ -448,10 +442,7 @@ export default function NexusTerminal() {
 
           </div>
 
-          {/* SECONDARY ROW */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* FIX 3: Replaced the redundant 'Live Value' with 'Market Performance' (Previous Close) */}
             <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-slate-800/80 rounded-sm shadow-xl group hover:border-slate-700 transition-colors">
               <CardContent className="p-6 flex justify-between items-center">
                 <div>
@@ -479,7 +470,6 @@ export default function NexusTerminal() {
               </CardContent>
             </Card>
 
-            {/* FIX 4: Upgraded 'System Status' to project safety using Emerald Green */}
             <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-slate-800/80 rounded-sm shadow-xl group hover:border-slate-700 transition-colors">
               <CardContent className="p-6 flex justify-between items-center">
                 <div>
@@ -496,7 +486,6 @@ export default function NexusTerminal() {
             </Card>
           </div>
 
-          {/* CHART AREA */}
           <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-slate-800/80 rounded-sm shadow-2xl relative overflow-hidden">
             <CardHeader className="pb-4 border-b border-slate-800/50 bg-[#050505]/50">
               <CardTitle className="text-slate-500 text-[10px] font-mono font-bold tracking-[0.2em] uppercase flex justify-between">
