@@ -54,24 +54,31 @@ async def get_prediction(ticker: str):
     try:
         stock = yf.Ticker(ticker_upper, session=session)
         
-        # Pull latest price from fast_info OR history (bulletproof)
+        # 1. Fetch current price
         try:
             current_price = stock.fast_info['last_price']
         except Exception:
             hist = stock.history(period="1d")
             current_price = float(hist['Close'].iloc[-1])
-        
-        # Market Cap calculation
+
+        # 2. BULLETPROOF MARKET CAP CALCULATION
         raw_mcap = None
         try:
+            # First attempt: Direct market_cap lookup
             raw_mcap = stock.fast_info.get('market_cap')
-        except Exception:
-            pass
+            
+            # Second attempt: Multiply price * shares if direct lookup failed
+            if not raw_mcap or raw_mcap == 0:
+                shares = stock.fast_info.get('shares') or stock.fast_info.get('shares_outstanding')
+                if shares and current_price:
+                    raw_mcap = current_price * shares
+        except Exception as mcap_err:
+            print(f"Market cap calculation error for {ticker_upper}: {mcap_err}")
             
         is_inr = ".NS" in ticker_upper or ".BO" in ticker_upper
         formatted_mcap = format_market_cap(raw_mcap, is_inr)
 
-        # Isolated try/except block for .info metadata so it NEVER crashes the main request
+        # 3. Isolated metadata lookups
         sector = None
         company_name = None
         try:
@@ -79,16 +86,16 @@ async def get_prediction(ticker: str):
             sector = info.get('sector')
             company_name = info.get('longName') or info.get('shortName')
         except Exception as info_err:
-            print(f"Warning: .info failed for {ticker_upper}, using fallbacks: {info_err}")
+            print(f"Info lookup skipped for {ticker_upper}: {info_err}")
 
-        # Apply robust fallbacks
+        # 4. Fallbacks
         if not sector:
             sector = SECTOR_MAP.get(ticker_upper, "Technology")
 
         if not company_name:
-            company_name = f"{ticker_upper.replace('.NS', '').replace('.BO', '')}"
+            clean_symbol = ticker_upper.replace('.NS', '').replace('.BO', '')
+            company_name = clean_symbol
 
-        # Target calculation
         ai_target = current_price * (1 + random.uniform(0.01, 0.05))
         
         return {
