@@ -39,7 +39,7 @@ export default function NexusTerminal() {
   const [searchError, setSearchError] = useState("");
   const [failedTicker, setFailedTicker] = useState("");
   const [debugText, setDebugText] = useState(""); 
-  const [hasData, setHasData] = useState(false); // <--- FORCE RENDER TRIGGER
+  const [hasData, setHasData] = useState(false); 
   const searchRef = useRef<HTMLDivElement>(null);
   
   const [data, setData] = useState({
@@ -147,29 +147,42 @@ export default function NexusTerminal() {
       }
 
       let json = await res.json();
-      // Handle proxy content wrappers if present
       if (json && json.contents && typeof json.contents === "string") {
         try { json = JSON.parse(json.contents); } catch (e) {}
       }
 
-      setDebugText(`4. Success! Data parsed.`);
+      // Check if backend wrapped data inside a 'data', 'result', or 'payload' object
+      const payload = json.data || json.result || json.payload || json;
 
-      // BYPASS ALL FALSY CHECKS: Force state update so dashboard ALWAYS renders
-      const resolvedPrice = json.current_price !== undefined && json.current_price !== null ? Number(json.current_price) : 0;
-      const resolvedTarget = json.ai_target !== undefined && json.ai_target !== null ? Number(json.ai_target) : (resolvedPrice * 1.05);
+      // Print raw telemetry to status bar so you can see exact keys if anything misses
+      setDebugText(`4. Success! Received: ${JSON.stringify(payload).slice(0, 130)}...`);
+
+      // SMART KEY MATCHING: Checks all common backend naming variations
+      const resolvedPrice = Number(
+        payload.current_price ?? payload.price ?? payload.latest_price ?? payload.close ?? payload.currentPrice ?? payload.Current_Price ?? payload.Price ?? 0
+      );
+      
+      const resolvedTarget = Number(
+        payload.ai_target ?? payload.target ?? payload.prediction ?? payload.predicted_price ?? payload.aiTarget ?? payload.AI_Target ?? payload.Prediction ?? (resolvedPrice * 1.05)
+      );
+
+      const resolvedName = payload.company_name ?? payload.name ?? payload.company ?? payload.longName ?? payload.shortName ?? payload.Company_Name ?? finalQuery;
+      const resolvedSector = payload.sector ?? payload.industry ?? payload.Sector ?? payload.Industry ?? "Finance";
+      const resolvedCap = payload.market_cap ?? payload.marketCap ?? payload.mktCap ?? payload.Market_Cap ?? payload.market_cap_string ?? "N/A";
+      const resolvedWeb = payload.website ?? payload.web ?? payload.url ?? payload.Website ?? "";
 
       setData({
         current_price: resolvedPrice,
         ai_target: resolvedTarget,
-        company_name: json.company_name || finalQuery,
-        website: json.website || "",
-        sector: json.sector || "Finance",
-        market_cap: json.market_cap || "N/A"
+        company_name: resolvedName,
+        website: resolvedWeb,
+        sector: resolvedSector,
+        market_cap: resolvedCap
       });
       
-      setSelectedTicker(json.ticker || finalQuery);
-      setSearchInput(json.ticker || finalQuery); 
-      setHasData(true); // <--- UNLOCKS THE DASHBOARD INSTANTLY
+      setSelectedTicker(payload.ticker ?? payload.symbol ?? finalQuery);
+      setSearchInput(payload.ticker ?? payload.symbol ?? finalQuery); 
+      setHasData(true); 
 
     } catch (error) {
       console.error("API Connection Error:", error);
