@@ -5,7 +5,6 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { Search, Activity, Zap, ShieldCheck, ArrowUpRight, ArrowDownRight, Building2, BarChart3, Globe, ServerOff, RefreshCcw, AlertTriangle, Target, Cpu, Layers, Terminal, ChevronRight, LineChart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useTicker } from "../context/TickerContext";
 
 // --- SMART SEARCH DIRECTORY ---
@@ -87,10 +86,10 @@ export default function NexusTerminal() {
   };
 
   const handleAnalyze = async (overrideTicker?: string) => {
-    console.log("Execute Triggered!"); // Debugging log
     const queryToUse = overrideTicker || searchInput;
     if (!queryToUse) return;
     
+    console.log("Execute Triggered for:", queryToUse);
     setLoading(true);
     setImgError(false);
     setSearchError(""); 
@@ -124,21 +123,20 @@ export default function NexusTerminal() {
     }
 
     try {
-      // ⚠️ HARDCODED RENDER URL TO BYPASS VERCEL ENV BUGS
       const API_URL = "https://ticx-wx9t.onrender.com";
       console.log(`Fetching from: ${API_URL}/api/predict/${finalQuery}`);
 
       const res = await fetch(`${API_URL}/api/predict/${finalQuery}`);
       
       if (!res.ok) {
-        console.error("Server responded with an error:", res.status);
+        console.error("Server Error:", res.status);
         setSearchError(`Unable to resolve asset information.`);
         setFailedTicker(queryToUse); 
         return;
       }
 
       const json = await res.json();
-      console.log("Success! Data received:", json);
+      console.log("Success! Data:", json);
 
       if (json.current_price) {
         setData({
@@ -154,10 +152,9 @@ export default function NexusTerminal() {
       }
     } catch (error) {
       console.error("API Connection Error:", error);
-      setSearchError("Network interface offline. Verification required.");
+      setSearchError("Network interface offline or blocked by browser extension.");
       setFailedTicker(queryToUse);
     } finally {
-      // ALWAYS stop the loading spinner, even if it crashes
       setLoading(false); 
     }
   };
@@ -178,7 +175,6 @@ export default function NexusTerminal() {
   const pctChange = data.current_price > 0 ? (diff / data.current_price) * 100 : 0;
   const isBullish = diff >= 0;
 
-  // --- DYNAMIC PREVIOUS CLOSE CALCULATOR ---
   const hash = selectedTicker ? selectedTicker.split('').reduce((a, b) => a + b.charCodeAt(0), 0) : 0;
   const dayChangePct = selectedTicker ? ((hash % 60) - 20) / 10 : 0; 
   const isDayBullish = dayChangePct >= 0;
@@ -225,6 +221,8 @@ export default function NexusTerminal() {
             <div className="flex items-center pl-5 pr-2 pointer-events-none">
               <span className="text-amber-500/70 font-mono font-bold text-sm">{">"}</span>
             </div>
+            
+            {/* SEARCH INPUT */}
             <Input 
               className="bg-transparent border-none text-white h-12 text-sm font-mono placeholder:text-slate-600 focus-visible:ring-0 rounded-none w-full tracking-wider" 
               placeholder="INITIALIZE TICKER SEARCH..."
@@ -240,19 +238,19 @@ export default function NexusTerminal() {
               autoComplete="off"
             />
             
+            {/* PURE HTML BUTTON TO BYPASS EXTENSION INTERFERENCE */}
             <div className="flex items-center pr-2 z-10">
-              <Button 
+              <button 
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   handleAnalyze();
                 }}
                 disabled={loading}
-                variant="ghost"
-                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all ${searchError ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white text-black hover:bg-slate-200 shadow-[0_0_15px_rgba(255,255,255,0.1)]'}`}
+                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all flex items-center justify-center cursor-pointer ${searchError ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white text-black hover:bg-slate-200 shadow-[0_0_15px_rgba(255,255,255,0.1)]'}`}
               >
                 {loading ? "..." : "EXECUTE"}
-              </Button>
+              </button>
             </div>
 
             {showSuggestions && filteredSuggestions.length > 0 && (
@@ -291,12 +289,12 @@ export default function NexusTerminal() {
                     <h2 className="text-3xl font-black text-white tracking-wide uppercase">Data Blocked</h2>
                   </div>
                   <p className="text-slate-400 text-sm leading-relaxed border-l-2 border-red-900 pl-4 py-1 font-mono">
-                    The requested sequence for <strong className="text-red-400">"{failedTicker}"</strong> could not be validated. The upstream market connection is temporarily restricted or the identifier syntax is invalid.
+                    The requested sequence for <strong className="text-red-400">"{failedTicker}"</strong> could not be validated. Check browser extensions that may be blocking API traffic.
                   </p>
                   <div className="pt-6 flex flex-col sm:flex-row gap-3">
-                    <Button onClick={() => setSearchError("")} className="bg-white hover:bg-slate-200 text-black rounded-sm h-10 px-8 text-xs font-bold tracking-widest uppercase transition-colors">
+                    <button onClick={() => setSearchError("")} className="bg-white hover:bg-slate-200 text-black rounded-sm h-10 px-8 text-xs font-bold tracking-widest uppercase transition-colors">
                       Acknowledge
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </div>
