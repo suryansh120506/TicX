@@ -32,12 +32,13 @@ const STOCK_DIRECTORY = [
 export default function NexusTerminal() {
   const router = useRouter();
 
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem("userToken");
-    if (!isAuthenticated) {
-      router.push("/signup");
-    }
-  }, [router]);
+  // TEMPORARILY DISABLED AUTH REDIRECT
+  // useEffect(() => {
+  //   const isAuthenticated = localStorage.getItem("userToken");
+  //   if (!isAuthenticated) {
+  //     router.push("/signup");
+  //   }
+  // }, [router]);
 
   const { selectedTicker, setSelectedTicker } = useTicker();
   const [searchInput, setSearchInput] = useState(selectedTicker || "");
