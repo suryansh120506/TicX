@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Search, Activity, Zap, ShieldCheck, ArrowUpRight, ArrowDownRight, Building2, BarChart3, Globe, ServerOff, RefreshCcw, AlertTriangle, Target, Cpu, Layers, Terminal, ChevronRight, LineChart } from "lucide-react";
+import { Activity, ShieldCheck, ArrowUpRight, ArrowDownRight, Globe, AlertCircle, Target, Cpu, Terminal, ChevronRight, LineChart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTicker } from "../context/TickerContext";
@@ -38,7 +38,6 @@ export default function NexusTerminal() {
   const [imgError, setImgError] = useState(false); 
   const [searchError, setSearchError] = useState("");
   const [failedTicker, setFailedTicker] = useState("");
-  const [debugText, setDebugText] = useState(""); 
   const [hasData, setHasData] = useState(false); 
   const searchRef = useRef<HTMLDivElement>(null);
   
@@ -91,7 +90,6 @@ export default function NexusTerminal() {
     const queryToUse = overrideTicker || searchInput;
     if (!queryToUse) return;
     
-    setDebugText("1. Triggered. Initializing pipeline...");
     setLoading(true);
     setImgError(false);
     setSearchError(""); 
@@ -127,21 +125,18 @@ export default function NexusTerminal() {
     try {
       const API_URL = "https://ticx-wx9t.onrender.com";
       const targetUrl = `${API_URL}/api/predict/${finalQuery}`;
-      setDebugText(`2. Fetching from: ${targetUrl}`);
 
       let res;
       try {
         res = await fetch(targetUrl);
       } catch (directError) {
-        setDebugText(`3. CORS blocked. Attempting proxy bypass...`);
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
         res = await fetch(proxyUrl);
       }
       
       if (!res.ok) {
-        setDebugText(`Error: Server returned status ${res.status}`);
-        setSearchError(`Unable to resolve asset information.`);
-        setFailedTicker(queryToUse); 
+        setSearchError("Unable to fetch live data for this stock at the moment.");
+        setFailedTicker(finalQuery); 
         setLoading(false);
         return;
       }
@@ -151,17 +146,20 @@ export default function NexusTerminal() {
         try { json = JSON.parse(json.contents); } catch (e) {}
       }
 
-      // Check if backend wrapped data inside a 'data', 'result', or 'payload' object
       const payload = json.data || json.result || json.payload || json;
 
-      // Print raw telemetry to status bar so you can see exact keys if anything misses
-      setDebugText(`4. Success! Received: ${JSON.stringify(payload).slice(0, 130)}...`);
-
-      // SMART KEY MATCHING: Checks all common backend naming variations
       const resolvedPrice = Number(
         payload.current_price ?? payload.price ?? payload.latest_price ?? payload.close ?? payload.currentPrice ?? payload.Current_Price ?? payload.Price ?? 0
       );
       
+      // Edge Case: Backend returned price 0
+      if (resolvedPrice <= 0) {
+        setSearchError("This stock is currently unavailable or data streams are paused by the exchange.");
+        setFailedTicker(finalQuery);
+        setLoading(false);
+        return;
+      }
+
       const resolvedTarget = Number(
         payload.ai_target ?? payload.target ?? payload.prediction ?? payload.predicted_price ?? payload.aiTarget ?? payload.AI_Target ?? payload.Prediction ?? (resolvedPrice * 1.05)
       );
@@ -186,9 +184,8 @@ export default function NexusTerminal() {
 
     } catch (error) {
       console.error("API Connection Error:", error);
-      setDebugText(`Crash: ${error instanceof Error ? error.message : "Unknown error"}`);
-      setSearchError("Network interface offline or blocked by browser extension.");
-      setFailedTicker(queryToUse);
+      setSearchError("We couldn't connect to the market data service. Please check your internet connection.");
+      setFailedTicker(finalQuery);
     } finally {
       setLoading(false); 
     }
@@ -203,6 +200,9 @@ export default function NexusTerminal() {
   const parsedDomain = data.website ? data.website.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0] : "";
   const activeDomain = guaranteedDomains[(selectedTicker || "").toUpperCase()] || parsedDomain;
   const activeLogoUrl = activeDomain ? `https://logos.hunter.io/${activeDomain}` : "";
+
+  const failedDomain = guaranteedDomains[(failedTicker || "").toUpperCase()];
+  const failedLogoUrl = failedDomain ? `https://logos.hunter.io/${failedDomain}` : "";
 
   const isIndianStock = (selectedTicker || "").endsWith(".NS") || (selectedTicker || "").endsWith(".BO");
   const sym = isIndianStock ? "₹" : "$";
@@ -280,17 +280,11 @@ export default function NexusTerminal() {
                   handleAnalyze();
                 }}
                 disabled={loading}
-                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all flex items-center justify-center cursor-pointer ${searchError ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-white text-black hover:bg-slate-200 shadow-[0_0_15px_rgba(255,255,255,0.1)]'}`}
+                className={`font-mono text-xs font-bold h-8 px-4 rounded-sm transition-all flex items-center justify-center cursor-pointer ${searchError ? 'bg-amber-500 text-black hover:bg-amber-400' : 'bg-white text-black hover:bg-slate-200 shadow-[0_0_15px_rgba(255,255,255,0.1)]'}`}
               >
                 {loading ? "..." : "EXECUTE"}
               </button>
             </div>
-
-            {debugText && (
-              <div className="absolute top-14 left-0 w-full bg-[#050505] border border-amber-500/30 p-2 rounded-sm text-[10px] font-mono text-amber-500 z-50">
-                System Status: {debugText}
-              </div>
-            )}
 
             {showSuggestions && filteredSuggestions.length > 0 && (
               <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-[#050505] border border-slate-800 rounded-sm shadow-2xl overflow-hidden z-50">
@@ -314,28 +308,52 @@ export default function NexusTerminal() {
       </div>
 
       {searchError ? (
-        <div className="flex-1 flex items-center justify-center animate-in fade-in duration-300 relative z-10 w-full">
-          <Card className="max-w-2xl w-full bg-[#0a0000] border border-red-900/50 rounded-sm shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-[repeating-linear-gradient(45deg,#ef4444,#ef4444_10px,transparent_10px,transparent_20px)] opacity-50" />
-            <CardContent className="p-8 md:p-12">
-              <div className="flex items-start gap-6">
-                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-sm shadow-[0_0_20px_rgba(239,68,68,0.15)]">
-                  <ServerOff className="h-8 w-8 text-red-500" />
-                </div>
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <h3 className="text-red-500 font-mono font-bold tracking-widest text-sm uppercase mb-1">ERR_PIPELINE_REFUSED</h3>
-                    <h2 className="text-3xl font-black text-white tracking-wide uppercase">Data Blocked</h2>
+        /* --- HUMAN FRIENDLY ERROR STATE FOR UNFETCHABLE STOCKS --- */
+        <div className="flex-1 flex items-center justify-center animate-in fade-in duration-300 relative z-10 w-full py-12">
+          <Card className="max-w-xl w-full bg-[#09090b]/90 border border-amber-500/30 rounded-sm shadow-2xl relative overflow-hidden backdrop-blur-xl">
+            <div className="absolute top-0 left-0 w-full h-1 bg-amber-500/50" />
+            <CardContent className="p-8">
+              <div className="flex flex-col items-center text-center space-y-6">
+                
+                {/* Stock Logo or Fallback Symbol */}
+                <div className="h-20 w-20 bg-white rounded-md flex items-center justify-center p-3 shadow-xl border border-slate-700 relative">
+                  {failedLogoUrl ? (
+                    <img src={failedLogoUrl} alt={failedTicker} className="h-full w-full object-contain" />
+                  ) : (
+                    <span className="text-black font-black text-xl uppercase tracking-wider">
+                      {failedTicker.slice(0, 4)}
+                    </span>
+                  )}
+                  <div className="absolute -bottom-2 -right-2 bg-amber-500 text-black p-1 rounded-full">
+                    <AlertCircle size={16} />
                   </div>
-                  <p className="text-slate-400 text-sm leading-relaxed border-l-2 border-red-900 pl-4 py-1 font-mono">
-                    The requested sequence for <strong className="text-red-400">"{failedTicker}"</strong> could not be validated. Check browser extensions that may be blocking API traffic.
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-amber-500 uppercase">
+                    Data Stream Unavailable
+                  </span>
+                  <h2 className="text-2xl font-black text-white tracking-wide uppercase">
+                    Unable to fetch live price for {failedTicker}
+                  </h2>
+                </div>
+
+                <div className="bg-[#050505] border border-slate-800/80 p-4 rounded-sm text-left w-full space-y-2">
+                  <p className="text-slate-300 text-xs leading-relaxed">
+                    {searchError}
                   </p>
-                  <div className="pt-6 flex flex-col sm:flex-row gap-3">
-                    <button onClick={() => setSearchError("")} className="bg-white hover:bg-slate-200 text-black rounded-sm h-10 px-8 text-xs font-bold tracking-widest uppercase transition-colors">
-                      Acknowledge
-                    </button>
-                  </div>
+                  <p className="text-slate-500 text-[11px] leading-relaxed font-sans">
+                    <strong>Why does this happen?</strong> Stock exchanges temporarily pause price feeds outside market hours, or the stock symbol might require a specific regional suffix (e.g., adding <code className="text-amber-400">.NS</code> for Indian stocks).
+                  </p>
                 </div>
+
+                <button 
+                  onClick={() => setSearchError("")} 
+                  className="bg-white hover:bg-slate-200 text-black rounded-sm h-10 px-8 text-xs font-bold tracking-widest uppercase transition-colors"
+                >
+                  Try Another Ticker
+                </button>
+
               </div>
             </CardContent>
           </Card>
@@ -381,7 +399,7 @@ export default function NexusTerminal() {
               
               <div className="bg-[#050505] border border-slate-800/80 p-6 rounded-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/5 blur-2xl group-hover:bg-amber-500/10 transition-colors" />
-                <BarChart3 size={16} className="text-amber-500 mb-3 opacity-70" />
+                <Activity size={16} className="text-amber-500 mb-3 opacity-70" />
                 <h4 className="text-white text-xs font-bold tracking-widest uppercase mb-2">Macro Sync</h4>
                 <p className="text-slate-500 text-[10px] leading-relaxed font-mono">Real-time validation against underlying market sector logic.</p>
               </div>
