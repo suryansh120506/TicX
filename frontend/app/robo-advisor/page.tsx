@@ -52,27 +52,52 @@ export default function RoboAdvisorPage() {
   }
 
   // --- THE FETCH PROTOCOL: Connects to Python Backend ---
+  // --- THE FETCH PROTOCOL: Connects to Python Backend ---
   useEffect(() => {
     if (selectedTicker) {
       setBriefingLoading(true);
       
       const fetchLivePrice = async () => {
         try {
-          const res = await fetch(`http://127.0.0.1:8000/api/predict/${selectedTicker}`);
-          const data = await res.json();
-          if (data.current_price) {
-            setCurrentMarketPrice(data.current_price);
+          const API_URL = "https://ticx-wx9t.onrender.com";
+          const targetUrl = `${API_URL}/api/predict/${selectedTicker}`;
+          
+          let res;
+          try {
+            res = await fetch(targetUrl);
+          } catch (directError) {
+            // CORS bypass fallback (Same as Live Terminal)
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+            res = await fetch(proxyUrl);
+          }
+          
+          let json = await res.json();
+          
+          // Handle proxy stringification if necessary
+          if (json && json.contents && typeof json.contents === "string") {
+            try { json = JSON.parse(json.contents); } catch (e) {}
+          }
+
+          const payload = json.data || json.result || json.payload || json;
+
+          // Smart key extraction to guarantee we get the price
+          const resolvedPrice = Number(
+            payload.current_price ?? payload.price ?? payload.latest_price ?? payload.close ?? 0
+          );
+
+          if (resolvedPrice > 0) {
+            setCurrentMarketPrice(resolvedPrice);
           }
         } catch (error) {
-          console.error("Failed to connect to Python backend.");
+          console.error("Failed to connect to Python backend:", error);
+        } finally {
+          setBriefingLoading(false);
         }
-        setBriefingLoading(false);
       };
 
       fetchLivePrice();
     }
   }, [selectedTicker]);
-
   // --- PAPER TRADING LOGIC ---
   const handleTrade = (type: "BUY" | "SELL") => {
     const shares = parseFloat(sharesInput);
