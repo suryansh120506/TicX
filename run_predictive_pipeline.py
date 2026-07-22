@@ -2,6 +2,7 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+import yfinance as yf
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
@@ -13,11 +14,41 @@ from src.validator import validate_model
 from src.rl_agent import train_rl_agent, backtest_agent
 
 if __name__ == "__main__":
+    # Expect a ticker symbol instead of a dataset path
     if len(sys.argv) < 2:
-        print("ERROR: Please provide a dataset.")
+        print("ERROR: Please provide a stock ticker (e.g., AAPL or RELIANCE.NS).")
         sys.exit(1)
         
-    data_path = sys.argv[1]
+    ticker = sys.argv[1]
+    data_path = f"{ticker}_dataset.csv"
+    
+    print(f"\n========== DOWNLOADING DATA FROM YFINANCE ==========")
+    print(f"Fetching historical data for: {ticker}")
+    
+    # Download 5 years of daily data
+    df_raw = yf.download(ticker, period="5y", interval="1d")
+    
+    if df_raw.empty:
+        print(f"ERROR: Could not fetch data for {ticker}. Check the ticker symbol.")
+        sys.exit(1)
+        
+    # --- NEW FIX: Flatten the multi-index columns if yfinance returns them ---
+    if isinstance(df_raw.columns, pd.MultiIndex):
+        df_raw.columns = df_raw.columns.droplevel(1)
+        
+    # Reset index to make 'Date' a standard column
+    df_raw.reset_index(inplace=True)
+    
+    # yfinance sometimes returns 'Datetime' depending on the interval, rename to 'Date' if needed
+    if 'Date' not in df_raw.columns and 'Datetime' in df_raw.columns:
+        df_raw = df_raw.rename(columns={'Datetime': 'Date'})
+        
+    # Drop any remaining NaN rows that might mess up the scaler
+    df_raw = df_raw.dropna()
+        
+    # Save it to a CSV
+    df_raw.to_csv(data_path, index=False)
+    print(f"Successfully saved {len(df_raw)} rows of data to {data_path}")
     
     print(f"\n========== QUANT ENGINE MASTER PIPELINE ==========")
     
@@ -65,6 +96,5 @@ if __name__ == "__main__":
     print(f"Final Backtest Environment built with {len(rl_test_data)} trading days.")
     
     # PHASE 4 & 5: TRAIN & BACKTEST THE TRADING BRAIN (PPO)
-    # Let's bump the timesteps slightly so it learns how to use the new Regime data
     train_rl_agent(rl_train_data, rl_train_data, total_timesteps=50000)
     backtest_agent(rl_test_data, rl_test_data)

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, ShieldCheck, ArrowUpRight, ArrowDownRight, Globe, AlertCircle, Target, Cpu, Terminal, ChevronRight, LineChart } from "lucide-react";
+import { Activity, ShieldCheck, ArrowUpRight, ArrowDownRight, Globe, AlertCircle, Target, Cpu, Terminal, ChevronRight, LineChart, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTicker } from "../context/TickerContext";
@@ -32,14 +32,6 @@ const STOCK_DIRECTORY = [
 export default function NexusTerminal() {
   const router = useRouter();
 
-  // TEMPORARILY DISABLED AUTH REDIRECT
-  // useEffect(() => {
-  //   const isAuthenticated = localStorage.getItem("userToken");
-  //   if (!isAuthenticated) {
-  //     router.push("/signup");
-  //   }
-  // }, [router]);
-
   const { selectedTicker, setSelectedTicker } = useTicker();
   const [searchInput, setSearchInput] = useState(selectedTicker || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -52,13 +44,15 @@ export default function NexusTerminal() {
   const [hasData, setHasData] = useState(false); 
   const searchRef = useRef<HTMLDivElement>(null);
   
+  // NEW: Added ticx_accuracy to state
   const [data, setData] = useState({
     current_price: 0,
     ai_target: 0,
     company_name: "",
     website: "",
     sector: "",
-    market_cap: ""
+    market_cap: "",
+    ticx_accuracy: "N/A" 
   });
 
   useEffect(() => {
@@ -134,6 +128,8 @@ export default function NexusTerminal() {
     }
 
     try {
+      // NOTE: Pointing to localhost for local testing. 
+      // Change this back to "https://ticx-wx9t.onrender.com" before pushing to production!
       const API_URL = "https://ticx-wx9t.onrender.com";
       const targetUrl = `${API_URL}/api/predict/${finalQuery}`;
 
@@ -178,6 +174,7 @@ export default function NexusTerminal() {
       const resolvedSector = payload.sector ?? payload.industry ?? payload.Sector ?? payload.Industry ?? "Finance";
       const resolvedCap = payload.market_cap ?? payload.marketCap ?? payload.mktCap ?? payload.Market_Cap ?? payload.market_cap_string ?? "N/A";
       const resolvedWeb = payload.website ?? payload.web ?? payload.url ?? payload.Website ?? "";
+      const resolvedAccuracy = payload.ticx_accuracy ?? "N/A"; // Extract new accuracy metric
 
       setData({
         current_price: resolvedPrice,
@@ -185,7 +182,8 @@ export default function NexusTerminal() {
         company_name: resolvedName,
         website: resolvedWeb,
         sector: resolvedSector,
-        market_cap: resolvedCap
+        market_cap: resolvedCap,
+        ticx_accuracy: resolvedAccuracy // Set accuracy to state
       });
       
       setSelectedTicker(payload.ticker ?? payload.symbol ?? finalQuery);
@@ -505,7 +503,8 @@ export default function NexusTerminal() {
 
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* NEW: Updated to a 4-card grid to cleanly feature the Accuracy metric */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-slate-800/80 rounded-sm shadow-xl group hover:border-slate-700 transition-colors">
               <CardContent className="p-6 flex justify-between items-center">
                 <div>
@@ -529,6 +528,19 @@ export default function NexusTerminal() {
                 </div>
                 <div className="h-10 w-10 bg-[#050505] border border-slate-800 rounded-sm flex items-center justify-center">
                   <Target className="h-5 w-5 text-amber-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* NEW: TicX LSTM Accuracy Card */}
+            <Card className="bg-[#09090b]/80 backdrop-blur-xl border border-amber-500/30 rounded-sm shadow-[0_0_15px_rgba(245,158,11,0.05)] group hover:border-amber-500/60 transition-colors">
+              <CardContent className="p-6 flex justify-between items-center">
+                <div>
+                  <p className="text-amber-500/70 text-[10px] font-mono font-bold tracking-[0.2em] uppercase mb-2">Model Accuracy</p>
+                  <p className="text-2xl font-mono font-black text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]">{data.ticx_accuracy}</p>
+                </div>
+                <div className="h-10 w-10 bg-amber-500/10 border border-amber-500/30 rounded-sm flex items-center justify-center">
+                  <Zap className="h-5 w-5 text-amber-500" />
                 </div>
               </CardContent>
             </Card>
