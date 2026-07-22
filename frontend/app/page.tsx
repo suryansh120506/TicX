@@ -1,23 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Activity, ShieldCheck, ArrowUpRight, ArrowDownRight, Globe, AlertCircle, Target, Cpu, Terminal, ChevronRight, LineChart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTicker } from "../context/TickerContext";
-import { useRouter } from "next/navigation";
-
-export default function NexusTerminal() {
-  const router = useRouter();
-
-  useEffect(() => {
-    // Replace 'userToken' with whatever auth state/cookie/token key you use
-    const isAuthenticated = localStorage.getItem("userToken"); 
-    if (!isAuthenticated) {
-      router.push("/signup"); // Redirect unauthenticated users
-    }
-  }, [router]);
 
 // --- SMART SEARCH DIRECTORY ---
 const STOCK_DIRECTORY = [
@@ -41,6 +30,15 @@ const STOCK_DIRECTORY = [
 ];
 
 export default function NexusTerminal() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem("userToken");
+    if (!isAuthenticated) {
+      router.push("/signup");
+    }
+  }, [router]);
+
   const { selectedTicker, setSelectedTicker } = useTicker();
   const [searchInput, setSearchInput] = useState(selectedTicker || "");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -164,7 +162,6 @@ export default function NexusTerminal() {
         payload.current_price ?? payload.price ?? payload.latest_price ?? payload.close ?? payload.currentPrice ?? payload.Current_Price ?? payload.Price ?? 0
       );
       
-      // Edge Case: Backend returned price 0
       if (resolvedPrice <= 0) {
         setSearchError("This stock is currently unavailable or data streams are paused by the exchange.");
         setFailedTicker(finalQuery);
@@ -320,14 +317,12 @@ export default function NexusTerminal() {
       </div>
 
       {searchError ? (
-        /* --- HUMAN FRIENDLY ERROR STATE FOR UNFETCHABLE STOCKS --- */
         <div className="flex-1 flex items-center justify-center animate-in fade-in duration-300 relative z-10 w-full py-12">
           <Card className="max-w-xl w-full bg-[#09090b]/90 border border-amber-500/30 rounded-sm shadow-2xl relative overflow-hidden backdrop-blur-xl">
             <div className="absolute top-0 left-0 w-full h-1 bg-amber-500/50" />
             <CardContent className="p-8">
               <div className="flex flex-col items-center text-center space-y-6">
                 
-                {/* Stock Logo or Fallback Symbol */}
                 <div className="h-20 w-20 bg-white rounded-md flex items-center justify-center p-3 shadow-xl border border-slate-700 relative">
                   {failedLogoUrl ? (
                     <img src={failedLogoUrl} alt={failedTicker} className="h-full w-full object-contain" />
