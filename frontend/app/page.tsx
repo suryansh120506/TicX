@@ -6,6 +6,18 @@ import { Activity, ShieldCheck, ArrowUpRight, ArrowDownRight, Globe, AlertCircle
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTicker } from "../context/TickerContext";
+import { useRouter } from "next/navigation";
+
+export default function NexusTerminal() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Replace 'userToken' with whatever auth state/cookie/token key you use
+    const isAuthenticated = localStorage.getItem("userToken"); 
+    if (!isAuthenticated) {
+      router.push("/signup"); // Redirect unauthenticated users
+    }
+  }, [router]);
 
 // --- SMART SEARCH DIRECTORY ---
 const STOCK_DIRECTORY = [
